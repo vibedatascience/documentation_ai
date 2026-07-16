@@ -67,15 +67,131 @@ footer a{color:var(--muted)}
 
 <p>Prereqs are light: Python plus ML 101 concepts (train/test splits, overfitting, regularization). The teaching style is socratic. Ramakrishnan asks the class to hand-count parameters, guess design choices, and spot flaws before he reveals them, and the transcripts are full of student questions that anticipate the next topic.</p>
 
-<h2>Lecture 1: What deep learning is, and a neural net as a graph</h2>
-<p>The framing: AI has had three breakthroughs since 1956. Rule-based systems failed because of Polanyi's paradox (we know more than we can tell, so experts cannot write down the rules they actually use) and because hand-written rules do not generalize to edge cases. Machine learning replaced rules with input-output examples, but it only works on structured data, meaning data you can put in spreadsheet columns. Images and text are unstructured: a pixel value of 251 says nothing about whether it depicts sky, water, or paint. Historically people bridged this with manual feature engineering (measure the beak length, the wingspan), and entire PhDs went into hand-crafting representations for one narrow task. Deep learning's contribution is that it learns the representations itself, and that is the single idea the whole course hangs on.</p>
-<p>The mechanics start from logistic regression, redrawn as a network: inputs flow left to right, get multiplied by coefficients, summed, and squashed through a sigmoid. Coefficients are called weights, intercepts are called biases (so "leaked model weights" in the news means the coefficients got out). The point of the graphical form is that it makes an obvious move visible: you can insert layers of linear functions between input and output. Stacked linear functions collapse to one linear function, so each hidden node gets a nonlinearity, and the practical default is the ReLU, max(0, x). The output layer is dictated by the problem (sigmoid for a probability, softmax for multi-class); everything in the middle is a design choice.</p>
-<p>The lecture closes with the discipline he repeats all term: hand-count the parameters. A 2-input, 3-ReLU-hidden, 1-sigmoid network has 13 parameters (2x3 + 3 weights, plus 4 biases everyone forgets). Written out as a single formula, even this toy network is unreadable, and that complexity is where the capability comes from.</p>
+<h2>Lecture 1: From rules to representations, and a neural net as a graph</h2>
 
-<h2>Lecture 2: Training. Loss functions and gradient descent</h2>
-<p>Case study: Cleveland Clinic heart disease data. 303 patients, 13 variables (29 after one-hot encoding the categoricals), binary label for a diagnosis within a year. Design choices: one hidden layer of 16 ReLUs (he tried 4, 8, 16; above 16 it overfit), sigmoid output, 497 parameters. The number of weights between two layers is roughly the product of their sizes, which is why parameter counts explode and why overfitting is a standing concern.</p>
-<p>Training is defined as minimizing a loss function, a measure of how bad the model is. Regression gets mean squared error; binary classification gets binary cross-entropy, which punishes confident wrong predictions with a loss that grows like negative log of the predicted probability. These specific functions are chosen because they are mathematically well behaved and have good gradients, not because they are the only options (he points to pinball loss for asymmetric penalties).</p>
-<p>Then the optimization core. Gradient descent is just: compute the derivative, step opposite to it, scaled by a learning rate. w_new = w_old minus alpha times gradient. Invented by Cauchy in 1847, and it is essentially the algorithm that trained GPT-4, which he finds astonishing and says so. The learning rate is small (0.1, 0.01) because the gradient is only valid locally, and published papers treat their learning-rate schedules as part of the IP. Stochastic gradient descent computes the gradient on a random minibatch (say 32 rows) instead of the whole dataset: one update per batch, not per epoch. It is only an approximation of the true gradient, and that noise is a feature, because it lets the optimizer escape local minima of the full loss. Backpropagation is the chain rule organized layer by layer from the output backwards, so intermediate quantities get reused instead of recomputed. Adam, an SGD variant, is the course default optimizer.</p>
+<p><strong>Step 1: three breakthroughs.</strong> AI was founded at the 1956 Dartmouth workshop (Minsky, McCarthy, and Shannon were all MIT). The founders expected the field to be substantially solved by that fall. Instead it took three seminal breakthroughs to get here:</p>
+
+<div class="pipeline"><b>traditional AI</b>   interview experts, hand-write if-then rules
+      │          fails: brittle, no generalization
+      ▼
+<b>machine learning</b> learn input→output mapping from examples
+      │          fails on unstructured data (images, text, audio)
+      ▼
+<b>deep learning</b>    learns the representation itself, automatically
+      │          raw input → learned features → linear/logistic head
+      ▼
+<b>generative AI</b>    deep learning that produces unstructured output</div>
+
+<p>Rule-based AI failed for two reasons. First, Polanyi's paradox: we know more than we can tell. You classify dog versus cat in about 20 milliseconds, but you cannot articulate how, and when you try, your explanation does not match what your brain actually does. If the expert cannot state the rule, you cannot program it. Second, hand-written rules are a small sample of an infinite world, so they break on edge cases.</p>
+
+<p><strong>Step 2: why ML stalls on unstructured data.</strong> Machine learning (learn a mapping from input-output pairs using statistics; linear regression counts) works when data fits in spreadsheet columns: numeric, or categorical you can one-hot encode. An image is three tables of numbers, one each for red, green, and blue light, every value 0 to 255. A 251 in the blue table means "lots of blue light here" whether the object is sky, water, or paint. The raw numbers carry no intrinsic meaning, so no algorithm can use them directly. The historical workaround was manual feature engineering: measure beak length, wingspan, and primary color, and build a spreadsheet from the picture. This is a representation of the raw data, and building representations by hand was the human bottleneck. Whole PhDs went into a representation for one narrow problem, like detecting one stroke type in CT scans.</p>
+
+<p><strong>Step 3: deep learning removes the bottleneck.</strong> Deep learning learns the representations automatically from raw input, then pipes them into what is basically a linear or logistic regression at the end. Three forces converged to make the old neural network idea work: new algorithmic tricks, large data, and GPUs. The immediate consequence: every sensor in the world can now detect, recognize, and classify what it senses. Face ID is a camera plus an image classifier. Regina Barzilay's mammogram model at MGH flagged a problem in her own years-old scan that a radiologist had cleared. Smart binoculars that name the bird you are looking at shipped two weeks before the lecture. His startup heuristic: find a sensor, ask what a model behind it could do. Generative AI is then the output-side unlock: models could always emit a few numbers (a probability, 10 class scores, GPS coordinates), but generating pictures, audio, and text is new, and multimodal models that mix them in one conversation are becoming the norm.</p>
+
+<p><strong>Step 4: logistic regression, redrawn as a network.</strong> The worked example is a hiring dataset: two inputs (GPA, years of experience), binary label (called for interview or not). Fitting logistic regression with any standard tool gives intercept 0.4 and coefficients 0.2 (GPA) and 0.5 (experience). Now redraw the formula as a graph:</p>
+
+<div class="pipeline">GPA ────0.2───┐
+              ├──▶ (+) ──▶ σ ──▶ P(interview)
+exp ────0.5───┘     ▲
+                    │ 0.4 (bias)</div>
+
+<p>Numbers flow left to right, get multiplied by their weight on each arrow, summed at the (+) node with the bias, then squashed by the sigmoid σ(a) = 1/(1+e<sup>-a</sup>). For an applicant with GPA 3.8 and 1.2 years of experience: 0.4 + 0.2(3.8) + 0.5(1.2) = 1.76, and σ(1.76) ≈ 0.85. Terminology swap for the neural net world: coefficients are <em>weights</em>, intercepts are <em>biases</em>, and "leaked model weights" in the news means exactly these numbers, since weights plus architecture reconstruct the model.</p>
+
+<p><strong>Step 5: why bother with the graph?</strong> Because once it is drawn, the obvious move appears: you can put things in the middle. The input is fixed by the problem and the output is fixed by the problem, so the only agency you have is between them. The most basic thing to do with any data is run it through a linear function, so insert a stack of linear functions: k inputs compress to, say, 3 numbers. Then do it again, and again. Each transformation is capacity to learn something interesting, and this middle section is exactly where the automatic representation learning of step 3 lives.</p>
+
+<p><strong>Step 6: the nonlinearity.</strong> There is a catch: stacked linear functions collapse to one linear function, so without a nonlinearity between layers the entire effort is wasted. Each node therefore applies an <em>activation function</em>, a scalar-in scalar-out function, after its linear sum. The menu:</p>
+
+<table>
+<tr><th>Activation</th><th>Formula</th><th>Use</th></tr>
+<tr><td>ReLU</td><td>max(0, a)</td><td>default for all hidden layers</td></tr>
+<tr><td>Sigmoid</td><td>1/(1+e<sup>-a</sup>)</td><td>output layer, single probability</td></tr>
+<tr><td>Softmax</td><td>e<sup>a_i</sup>/Σe<sup>a_j</sup></td><td>output layer, multi-class (lecture 3)</td></tr>
+<tr><td>Linear</td><td>a</td><td>output layer, plain number</td></tr>
+</table>
+
+<p>The ReLU passes positive numbers through unchanged and squashes negatives to zero, and many practitioners credit it as a key reason deep learning took off (the gradient story behind that lands in lecture 2). The rule he repeats: hidden layers get ReLUs, no deep thought needed; the output activation is dictated by the output type, so you have no choice there. There is a menagerie of alternatives (tanh, leaky ReLU, GELU, swish) you can ignore in practice.</p>
+
+<p><strong>Step 7: assemble and name everything.</strong> A <em>neuron</em> is a linear function followed by an activation: many numbers in, one number out. A vertical stack of neurons is a <em>layer</em>. Input layer and output layer are given; everything between is a <em>hidden layer</em>. If every neuron's output feeds every neuron in the next layer, the layer is <em>fully connected</em> or <em>dense</em>. Logistic regression is a neural network with zero hidden layers, and deep learning is neural networks with many. Data flowing strictly left to right makes it a <em>feedforward</em> network, and the whole arrangement of layers, sizes, and activations is the <em>architecture</em>. Transformers and CNNs, coming later, are just particular architectures.</p>
+
+<p><strong>Step 8: the concept check.</strong> Build the interview model as a real network: 2 inputs, one hidden layer of 3 ReLUs, sigmoid output.</p>
+
+<div class="pipeline">x1 ──┬──▶ ReLU ──┐
+     ├──▶ ReLU ──┼──▶ σ ──▶ y
+x2 ──┴──▶ ReLU ──┘
+     2·3 weights   3·1 weights
+     + 3 biases    + 1 bias      = 13 parameters</div>
+
+<p>The class guessed 12 and 9 before landing on 13, because everyone forgets the biases. His standing instruction: hand-count parameters for your first few networks until it is reflexive, because transformers will be hard if the mechanics are not automatic. The forward pass in code (my addition, not from the lecture, but it is exactly the arithmetic he walks through on the slide):</p>
+
+<pre><code>import numpy as np
+
+W1 = np.array([[0.9, -0.3, 0.2],
+               [0.1,  0.7, 0.5]])
+b1 = np.array([0.1, -0.2, 0.3])
+W2 = np.array([[0.6], [-0.4], [0.8]])
+b2 = np.array([0.05])
+
+x = np.array([3.8, 1.2])
+h = np.maximum(0, x @ W1 + b1)
+p = 1 / (1 + np.exp(-(h @ W2 + b2)))</code></pre>
+
+<p>Written out as one formula, even this 13-parameter network is an unreadable nest of maxes and exponentials, far more complicated than the logistic regression it grew from, with the same two inputs. That complexity is where the capability comes from, provided you can train it, which is lecture 2's job.</p>
+
+<div class="gotcha"><strong>GOTCHA · WHAT YOU CHOOSE VS WHAT YOU ARE GIVEN</strong><br>Input size and output layer are dictated by the problem. Number of hidden layers, neurons per layer, and hidden activations are yours. Interpretability note from Q&amp;A: you always know exactly how a data point flows through the network; what you cannot easily do is credit any single input for the outcome, because everything gets enmeshed in the middle.</div>
+
+<h2>Lecture 2: Training. Loss functions, gradient descent, SGD, backprop</h2>
+
+<p><strong>Step 1: the case study.</strong> Cleveland Clinic data: 303 patients who came in for something other than a heart problem, with demographics and biomarkers (age, gender, chest pain, blood pressure, cholesterol, sugar), tracked for whether they got a heart disease diagnosis in the following year. Classic binary classification you could solve with random forests or gradient boosting; the point is to solve it with a neural net as the warm-up on structured data. Design by the simplest-first rule: one hidden layer (zero hidden layers is just logistic regression), 16 ReLU neurons (he tried 4, 8, 16; above 16 it overfit; powers of 2 by convention), sigmoid output. The 13 raw variables become 29 inputs after one-hot encoding the categoricals.</p>
+
+<p><strong>Step 2: parameter count, then Keras.</strong> 29×16 weights + 16 biases + 16×1 weights + 1 bias = 497. The entire model is four lines:</p>
+
+<pre><code>inputs = keras.Input(shape=(29,), name="input")
+h = keras.layers.Dense(16, activation="relu")(inputs)
+outputs = keras.layers.Dense(1, activation="sigmoid")(h)
+model = keras.Model(inputs, outputs)</code></pre>
+
+<p>Dense means fully connected to the neighboring layers. Each layer is defined and then fed the previous layer's output by function call, which is what wires the graph. The output variable could be the result of a 1,000-layer stack built in a loop and Keras would not care; the Model object only needs to know the input and the output.</p>
+
+<p><strong>Step 3: what training means.</strong> Same as regression: find values for the parameters so predictions sit as close to actuals as possible. In R or scikit-learn the optimization was hidden under the hood; here you learn it because it is the heart of the game. Define a function measuring the <em>discrepancy</em> between predicted and actual (deliberately not "error", because prediction minus actual is only one option and much of the field's creativity lives in clever discrepancy measures). These are <em>loss functions</em>. Perfect model, loss 0.</p>
+
+<p><strong>Step 4: pick the loss.</strong> Regression output: mean squared error, average of (y<sup>i</sup> − model(x<sup>i</sup>))². Binary classification is trickier: the prediction is a fraction from the sigmoid, the actual is exactly 0 or 1. Build the shape you want from intuition. For a patient with heart disease (y=1), a predicted probability near 1 should cost almost nothing and a prediction near 0 should be punished brutally, and −log(p) has exactly that shape: loss 0 at p=1, about 10 at p=1/1000, exploding toward zero probability. For y=0 patients, −log(1−p) does the mirror image. An if-then between two formulas is hostile to differentiation, so combine them:</p>
+
+<pre><code>loss(i) = -[ y_i * log(p_i) + (1 - y_i) * log(1 - p_i) ]
+BCE     = mean over all i</code></pre>
+
+<p>When y=1 the second term vanishes; when y=0 the first does. Average over the dataset and that is binary cross-entropy, the loss under approximately every binary classifier Google has ever shipped. It is chosen because it is mathematically well behaved with good gradients, not because it is unique; asymmetric losses that punish overestimates harder exist (search pinball loss).</p>
+
+<p><strong>Step 5: gradient descent.</strong> Now minimize. Warm up on a one-variable quartic g(w). Setting the derivative to zero analytically fails for complicated functions, but the derivative itself tells you the local slope, and that is enough:</p>
+
+<div class="pipeline">start at random w, repeat:
+  g'(w) &gt; 0  →  decrease w      (function rises to the right)
+  g'(w) &lt; 0  →  increase w      (function falls to the right)
+  g'(w) ≈ 0  →  stop
+
+all three cases in one line:
+  <b>w ← w − α · g'(w)</b></div>
+
+<p>That one-line update is gradient descent, invented by Cauchy in 1847, and it is the algorithm underneath GPT-4, which he finds astonishing enough to say twice. α is the learning rate, small (0.1, 0.01) because the gradient is only trustworthy near the current point; take a big step and all bets are off. Researchers treat their learning-rate schedules as part of the IP and bury them in appendices. On the toy quartic, starting at w=2.5 with α=0.1, it finds the minimum in four or five hops.</p>
+
+<p><strong>Step 6: many variables.</strong> A real loss function has millions to billions of weights (GPT-3: 175 billion). Take the partial derivative with respect to each weight, holding the rest constant, stack them into a vector, and that vector is the gradient, written ∇. The update is the same formula with vectors: w ← w − α∇L(w). Two variables or 175 billion, identical mechanics.</p>
+
+<p><strong>Step 7: local minima, and why nobody cares.</strong> Gradient descent stops wherever the gradient hits zero: a local minimum, the global minimum, or a saddle point. No guarantees. Empirically it has not mattered, for three reasons. A decent solution to a very complex network already solves the problem, and the exact global minimum of the training loss would likely overfit anyway (the test data has its own loss surface, and its minimum is elsewhere). In a billion dimensions, a true local minimum requires the function to slope upward in every one of a billion directions simultaneously, which is vanishingly unlikely, so you mostly hit saddle points and keep moving. And the big models just stop when time or money runs out, and it works. GPT-4 probably stopped mid-descent because it had been running for days at enormous cost.</p>
+
+<p><strong>Step 8: backprop.</strong> (Never say backpropagation; the community says backprop.) One gradient over a billion weights and millions of data points is a huge computation, and it happens every single step. Backprop is the chain rule organized to exploit the layered structure: start at the loss, compute the gradient with respect to the output, step one layer left, compute the gradient of that with respect to the previous layer's output, and keep walking backwards. Working end-to-start means every intermediate quantity is computed once and reused instead of being recomputed along every path. Organized this way, the whole thing becomes a sequence of matrix multiplications, which is exactly the operation GPUs were built to accelerate for video game rendering. Someone connected those dots, AlexNet won ImageNet on GPUs in 2012, and, in his words, all hell broke loose. Backprop plus GPUs is the seminal reason this class exists. Related detail from Q&amp;A: initial weights are random but not arbitrary; schemes like He and Glorot initialization (Keras defaults) are tuned so gradients neither explode nor vanish through deep stacks. Just use the defaults.</p>
+
+<p><strong>Step 9: SGD.</strong> Even backprop over the full dataset per step is too expensive, and a huge dataset may not fit in memory. Stochastic gradient descent grabs a small random batch (32 or 64 rows out of possibly billions), pretends it is the whole dataset, computes loss, gradient, and weight update from it alone, then grabs the next batch. One update per batch. Strictly SGD means one data point at a time; in practice everyone uses minibatches and still calls it SGD.</p>
+
+<div class="gotcha"><strong>GOTCHA · THE APPROXIMATION IS THE FEATURE</strong><br>The minibatch gradient only approximates the true gradient, and that noise helps: each batch defines a slightly different loss surface, so the optimizer can walk out of local minima of the full loss. Work less, do better. Nobody has a complete theory of why SGD is this effective; it just is.</div>
+
+<p><strong>Step 10: the full training loop.</strong> SGD has many flavors; the course default is Adam.</p>
+
+<div class="pipeline">batch of X ──▶ layers ──▶ predictions ┐
+                                      ├─▶ <b>loss</b> ─▶ optimizer
+true y ───────────────────────────────┘        │ ∇ via backprop
+        ▲                                      │
+        └──────── w ← w − α·∇ ─────────────────┘  repeat per batch</div>
+
+<p>This loop trained the 497-parameter heart disease model, GPT, AlphaFold, and AlphaGo. Only the architecture and the data change.</p>
 
 <h2>Lecture 3: Keras end to end, then multi-class with softmax</h2>
 <p>First half formalizes the vocabulary you need to read any training log. An epoch is one full pass through the training data. With SGD the epoch is split into batches (194 training rows at batch size 32 gives 7 batches, the last one small, which is fine), and weights update after every batch. Batch sizes are powers of 2 because of GPU alignment.</p>
