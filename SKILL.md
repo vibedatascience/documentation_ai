@@ -1,19 +1,19 @@
 ---
 name: vibelogs
-description: How to add and edit posts on Rahul's vibelogs site (GitHub Pages blog of AI walkthroughs, repo vibedatascience/documentation_ai, may be renamed to vibedatascience/vibelogs). Use this skill whenever asked to add a post, page, or rule to vibelogs / the blog / documentation_ai, or to deslop its content.
+description: How to add and edit posts on Rahul's vibelogs site (GitHub Pages blog of AI walkthroughs, repo vibedatascience/vibelogs). Use this skill whenever asked to add a post, page, or rule to vibelogs / the blog / documentation_ai, or to deslop its content.
 ---
 
 # vibelogs skill
 
 Personal blog of AI walkthroughs and reference pages. Live at
-https://vibedatascience.github.io/documentation_ai/ (becomes /vibelogs/ if the repo is renamed; GitHub redirects the old URL either way).
+https://vibedatascience.github.io/vibelogs/
 
 ## Repo access
 
 Clone with the GitHub PAT from the user's custom instructions (fine-grained, CONTENTS READ/WRITE ONLY):
 
 ```
-git clone https://x-access-token:<PAT>@github.com/vibedatascience/documentation_ai.git
+git clone https://x-access-token:<PAT>@github.com/vibedatascience/vibelogs.git
 ```
 
 The token CANNOT rename repos, create repos, enable Pages, or call most non-contents API endpoints (403). Pages deploys automatically on push to main via Actions.
