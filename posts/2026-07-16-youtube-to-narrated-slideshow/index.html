@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Turn long YouTube videos into narrated slideshows — vibelogs</title>
+<title>Turn long YouTube videos into narrated slideshows | vibelogs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -49,7 +49,7 @@ footer a{color:var(--muted)}
 
 <article>
 <h2>What I built</h2>
-<p>A pipeline that takes a long YouTube video — a 31-minute podcast interview, a 90-minute football pod, an MIT lecture — and produces a short, watchable MP4: designed slides, full-bleed imagery, neural voiceover, and slow Ken Burns zooms. A 31-minute interview becomes a 3.5-minute video. An hour-long lecture becomes an 11-minute, 19-chapter explainer with custom diagrams.</p>
+<p>A pipeline that takes a long YouTube video (a 31-minute podcast interview, a 90-minute football pod, an MIT lecture) and produces a short, watchable MP4: designed slides, full-bleed imagery, neural voiceover, and slow Ken Burns zooms. A 31-minute interview becomes a 3.5-minute video. An hour-long lecture becomes an 11-minute, 19-chapter explainer with custom diagrams.</p>
 
 <div class="pipeline">YouTube URL
    │
@@ -57,7 +57,7 @@ footer a{color:var(--muted)}
 <b>[1] transcript</b>   EasySubAPI (or yt-dlp + Whisper)
    │
    ▼
-<b>[2] distill</b>      LLM condenses to 8–20 slide script
+<b>[2] distill</b>      LLM condenses to 8-20 slide script
    │
    ▼
 <b>[3] slides</b>       1920×1080 cards + real imagery/diagrams
@@ -97,22 +97,22 @@ text = " ".join(re.sub(r"&lt;[^&gt;]+&gt;", "", html.unescape(f["message"])) for
 sents = re.split(r"(?&lt;=[.!?]) +", text)
 sents = [s for i, s in enumerate(sents) if i == 0 or s != sents[i-1]]
 clean = " ".join(dict.fromkeys(sents))</code></pre>
-<p>Then the LLM step: condense the clean transcript into a slide script — 8–20 slides, each with a headline, 2–3 lines of narration, and an image/diagram direction. This is where the quality lives. Prompt for the core ideas and best verbatim quotes, not a flat summary.</p>
+<p>Then the LLM step: condense the clean transcript into a slide script: 8-20 slides, each with a headline, 2-3 lines of narration, and an image/diagram direction. This is where the quality lives. Prompt for the core ideas and best verbatim quotes, not a flat summary.</p>
 
 <h2>3 · Build the slides</h2>
-<p>1920×1080 PNGs via PIL. The first version I made was plain dark text cards — technically fine, deadly boring. What fixed it:</p>
+<p>1920×1080 PNGs via PIL. The first version I made was plain dark text cards. Technically fine, deadly boring. What fixed it:</p>
 <ul>
-  <li><strong>Full-bleed imagery</strong> matched to each slide's content — public domain paintings for a history podcast, stadium photography for football, custom-drawn diagrams for a lecture</li>
-  <li><strong>Cinematic grading</strong> — darken + slight desaturation so white text sits on top</li>
+  <li><strong>Full-bleed imagery</strong> matched to each slide's content: public domain paintings for a history podcast, stadium photography for football, custom-drawn diagrams for a lecture</li>
+  <li><strong>Cinematic grading</strong>: darken + slight desaturation so white text sits on top</li>
   <li><strong>One accent color</strong>, pull quotes set large, image credits small in the corner</li>
-  <li>For technical content, <strong>draw the diagrams programmatically</strong> (PIL/matplotlib) — network architectures, tactical boards, activation curves — instead of hunting for stock</li>
+  <li>For technical content, <strong>draw the diagrams programmatically</strong> (PIL/matplotlib): network architectures, tactical boards, activation curves. Beats hunting for stock</li>
 </ul>
 
 <h2>4 · Voiceover</h2>
-<p>edge-tts (Microsoft neural voices, pip-installable, free) generates one MP3 per slide. Quality is genuinely good.</p>
+<p>edge-tts (Microsoft neural voices, pip-installable, free) generates one MP3 per slide. Quality is good.</p>
 <pre><code>pip install edge-tts
 edge-tts --voice en-US-GuyNeural --text "$NARRATION" --write-media slide_01.mp3</code></pre>
-<p>Voice picks: <code>en-US-GuyNeural</code> for a documentary feel, British voices (<code>en-GB-RyanNeural</code>) when the source is British. One clip per slide means slide timing is driven by audio duration — no manual sync.</p>
+<p>Voice picks: <code>en-US-GuyNeural</code> for a documentary feel, British voices (<code>en-GB-RyanNeural</code>) when the source is British. One clip per slide means slide timing is driven by audio duration, no manual sync.</p>
 
 <h2>5 · Render</h2>
 <p>ffmpeg per slide: pair the PNG with its MP3, apply a slow zoompan (alternate zoom-in and zoom-out between slides), crossfade, then concat:</p>
@@ -123,10 +123,10 @@ edge-tts --voice en-US-GuyNeural --text "$NARRATION" --write-media slide_01.mp3<
 ffmpeg -f concat -safe 0 -i segments.txt -c copy final.mp4</code></pre>
 
 <h2>Gotchas</h2>
-<div class="gotcha"><strong>GOTCHA · ROLLING CAPTIONS</strong><p style="margin:6px 0 0">YouTube auto-captions repeat each phrase 2–4× across frames, and messages contain HTML tags and entities. Strip tags, unescape, sentence-split, then dedupe — in that order.</p></div>
+<div class="gotcha"><strong>GOTCHA · ROLLING CAPTIONS</strong><p style="margin:6px 0 0">YouTube auto-captions repeat each phrase 2-4 times across frames, and messages contain HTML tags and entities. Strip tags, unescape, sentence-split, then dedupe, in that order.</p></div>
 <div class="gotcha"><strong>GOTCHA · TLS + EDGE-TTS</strong><p style="margin:6px 0 0">Behind a corporate/egress proxy with a self-signed cert, edge-tts's websocket TLS verification fails. Bypass verification for that one connection only.</p></div>
-<div class="gotcha"><strong>GOTCHA · PLAIN CARDS ARE BORING</strong><p style="margin:6px 0 0">Text-on-dark-card slides feel like a settings screen. Imagery per slide is not optional — it's the difference between "delete" and "rewatch".</p></div>
-<div class="gotcha"><strong>GOTCHA · ONE SESSION</strong><p style="margin:6px 0 0">If running in an ephemeral sandbox, the environment resets — run the whole pipeline in one go, and save intermediates (transcript, script JSON, slide PNGs) as you go.</p></div>
+<div class="gotcha"><strong>GOTCHA · PLAIN CARDS ARE BORING</strong><p style="margin:6px 0 0">Text-on-dark-card slides feel like a settings screen. Imagery per slide is the difference between "delete" and "rewatch".</p></div>
+<div class="gotcha"><strong>GOTCHA · ONE SESSION</strong><p style="margin:6px 0 0">If running in an ephemeral sandbox, the environment resets. Run the whole pipeline in one go, and save intermediates (transcript, script JSON, slide PNGs) as you go.</p></div>
 
 <h2>Results</h2>
 <table>
@@ -138,8 +138,8 @@ ffmpeg -f concat -safe 0 -i segments.txt -c copy final.mp4</code></pre>
 
 <h2>Links</h2>
 <ul>
-  <li><a href="https://github.com/rany2/edge-tts">edge-tts</a> — free neural TTS</li>
-  <li><a href="https://github.com/SYSTRAN/faster-whisper">faster-whisper</a> — local transcription fallback</li>
+  <li><a href="https://github.com/rany2/edge-tts">edge-tts</a>: free neural TTS</li>
+  <li><a href="https://github.com/SYSTRAN/faster-whisper">faster-whisper</a>: local transcription fallback</li>
   <li><a href="https://ffmpeg.org/ffmpeg-filters.html#zoompan">ffmpeg zoompan docs</a></li>
 </ul>
 </article>
