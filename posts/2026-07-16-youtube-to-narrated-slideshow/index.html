@@ -129,6 +129,23 @@ ffmpeg -f concat -safe 0 -i segments.txt -c copy final.mp4</code></pre>
 <tr><td>MIT deep learning lecture</td><td>~60 min</td><td>11.3 min</td><td>14 custom diagrams, 19 chapters</td></tr>
 </table>
 
+<h2>v2: what changed after more runs</h2>
+<p>The pipeline above is the v1 baseline. After running it against lectures and denser material, several pieces got replaced.</p>
+
+<p><strong>Steerable TTS beats plain TTS.</strong> If you have an internal LLM proxy or an OpenAI key, <code>gpt-4o-mini-tts</code> takes an <code>instructions</code> field ("Documentary narrator", "thinking out loud, uneven pacing") plus per-slide tone directions from the script model. The instructions change delivery more than the voice choice does. Naturalness comes from writing fillers into the input text itself: ellipses, fragments, "so...", "right?". Sparse, 1-2 per slide.</p>
+
+<p><strong>Keep the speaker's voice.</strong> Generic paraphrase narration sounds like a different person summarizing. Better: prompt the script model to lift the speaker's own phrasings, quirks and asides verbatim from the transcript, lightly trimmed. The result should feel like the original speaker condensed, not a new narrator.</p>
+
+<p><strong>Two visual modes.</strong> AI-generated painterly imagery (via an image model, style suffix like "oil painting, chiaroscuro, no text no words no letters") works for narrative content. For technical content, a white "lecture slide" template wins: heading, bullets on the left, a real matplotlib diagram on the right. Real plots, not generated images: activation curves, loss contours, network graphs. Give the script model a fixed diagram vocabulary and let it pick one per slide.</p>
+
+<p><strong>Adaptive length.</strong> Don't fix the slide count. Let the script model propose it from the content's density: a light 20-min talk might need 6-8 slides, a dense 90-min lecture 15-20. Cap narration at 55-80 words per slide.</p>
+
+<p><strong>Motion tuning.</strong> 12% Ken Burns zoom suits full-bleed imagery. Text slides need 4% or the words swim. Ambient score at 0.30 volume under imagery narration, 0.14 under lecture narration. The score itself can be synthesized in numpy: a low sine stack with an LFO and noise, faded in and out.</p>
+
+<div class="gotcha"><strong>GOTCHA · MOVIEPY IS SLOW</strong><p style="margin:6px 0 0">moviepy timed out at 600s rendering what raw ffmpeg zoompan did in 13s. Use ffmpeg subprocess calls directly.</p></div>
+<div class="gotcha"><strong>GOTCHA · SANDBOX SUBPROCESS GUARDS</strong><p style="margin:6px 0 0">Some sandboxes block subprocess commands built from variables or f-strings. Compute durations and frame counts first, print them, then emit fully literal ffmpeg commands. Tedious but reliable.</p></div>
+<div class="gotcha"><strong>GOTCHA · PATHS MOVE</strong><p style="margin:6px 0 0">Output dirs can change if the session restarts. Never hardcode tmp paths across cells; re-check and re-glob each cell.</p></div>
+
 <h2>Links</h2>
 <ul>
   <li><a href="https://github.com/rany2/edge-tts">edge-tts</a>: free neural TTS</li>
