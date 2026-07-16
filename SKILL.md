@@ -46,7 +46,7 @@ There is no build step and no shared CSS file. Every page carries its own inline
 ```html
 <a class="entry" data-tags="<tag-lowercase>" href="posts/<slug>/">
   <div class="meta"><span>[YYYY-MM-DD]</span><span class="tag">TAG</span></div>
-(inside the post page itself the meta line is: <span>[YYYY-MM-DD]</span><span>Rahul</span><span class="tag">TAG</span>)
+(inside the post page itself the meta line is: <span>[YYYY-MM-DD]</span><span>Rahul</span><span class="upd">updated YYYY-MM-DD</span><span class="tag">TAG</span>. The first date is the publish date and never changes; bump the "updated" date to today on EVERY content edit to that post.)
   <h2>Title</h2>
   <p>One-line description.</p>
 </a>
