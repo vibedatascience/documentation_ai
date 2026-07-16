@@ -34,7 +34,7 @@ There is no build step and no shared CSS file. Every page carries its own inline
 
 - Palette: paper #FAFAF8, ink #17171C, cobalt #2545FF, muted #6E6E76, rule #E7E7E2, chip #EEF1FF
 - Fonts: Space Grotesk (display), IBM Plex Mono (metadata/labels), Inter (body)
-- Post metadata line: [YYYY-MM-DD] + tag chip
+- Post metadata line: [YYYY-MM-DD] + author byline "Rahul" + tag chip. Every post page also carries <meta name="author" content="Rahul">.
 - Tags: AGENTS, TOOLING, LLM-APPS, DATA-SCIENCE, REFERENCE. New tag = add a filter button on index.html
 - Components available in post CSS: pre/code blocks, .gotcha callouts (GOTCHA · LABEL), .pipeline ASCII diagrams, tables
 
@@ -46,6 +46,7 @@ There is no build step and no shared CSS file. Every page carries its own inline
 ```html
 <a class="entry" data-tags="<tag-lowercase>" href="posts/<slug>/">
   <div class="meta"><span>[YYYY-MM-DD]</span><span class="tag">TAG</span></div>
+(inside the post page itself the meta line is: <span>[YYYY-MM-DD]</span><span>Rahul</span><span class="tag">TAG</span>)
   <h2>Title</h2>
   <p>One-line description.</p>
 </a>
