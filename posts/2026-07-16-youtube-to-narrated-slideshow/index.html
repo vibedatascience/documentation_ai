@@ -130,14 +130,6 @@ ffmpeg -f concat -safe 0 -i segments.txt -c copy final.mp4</code></pre>
 <div class="gotcha"><strong>GOTCHA · SANDBOX SUBPROCESS GUARDS</strong><p style="margin:6px 0 0">Some sandboxes block subprocess commands built from variables or f-strings. Compute durations and frame counts first, print them, then emit fully literal ffmpeg commands. Tedious but reliable.</p></div>
 <div class="gotcha"><strong>GOTCHA · PATHS MOVE</strong><p style="margin:6px 0 0">Output dirs can change if the session restarts. Never hardcode tmp paths across cells; re-check and re-glob each cell. Run the whole pipeline in one go and save intermediates as you go.</p></div>
 
-<h2>Results</h2>
-<table>
-<tr><th>Source</th><th>Length in</th><th>Length out</th><th>Visual treatment</th></tr>
-<tr><td>Ken Burns podcast interview</td><td>31 min</td><td>3.5 min</td><td>Painterly imagery, Ken Burns zoom (obviously)</td></tr>
-<tr><td>Football Weekly, WC semi-final</td><td>~60 min</td><td>9.5 min</td><td>Photography + drawn tactical boards</td></tr>
-<tr><td>MIT deep learning lecture</td><td>~60 min</td><td>11.3 min</td><td>Lecture slides, 14 matplotlib diagrams, 19 chapters</td></tr>
-</table>
-
 <h2>Links</h2>
 <ul>
   <li><a href="https://github.com/rany2/edge-tts">edge-tts</a>: free neural TTS</li>
