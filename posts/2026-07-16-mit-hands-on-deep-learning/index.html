@@ -36,6 +36,17 @@ th{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.06em
 .pipeline b{color:var(--cobalt);font-weight:500}
 footer{border-top:1px solid var(--rule);padding:24px 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted)}
 footer a{color:var(--muted)}
+.widget{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:18px;margin:0 0 18px}
+.widget .wtitle{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--cobalt);margin-bottom:12px}
+.widget .row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;flex-wrap:wrap}
+.widget input[type=range]{flex:1;min-width:120px;accent-color:var(--cobalt)}
+.widget .val{min-width:52px;text-align:right;font-weight:500}
+.widget .calc{font-family:'IBM Plex Mono',monospace;font-size:0.8rem;background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;margin-top:10px;line-height:1.9;overflow-x:auto}
+.widget .big{color:var(--cobalt);font-weight:700}
+.widget button{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;border:1px solid var(--rule);background:var(--paper);padding:4px 10px;border-radius:5px;cursor:pointer}
+.widget button.on{background:var(--chip);border-color:var(--cobalt);color:var(--cobalt);font-weight:500}
+.widget svg{width:100%;height:auto;display:block}
+.widget svg text{font-family:'IBM Plex Mono',monospace}
 </style>
 </head>
 <body>
@@ -96,6 +107,13 @@ exp ────0.5───┘     ▲
 
 <p>Numbers flow left to right, get multiplied by their weight on each arrow, summed at the (+) node with the bias, then squashed by the sigmoid σ(a) = 1/(1+e<sup>-a</sup>). For an applicant with GPA 3.8 and 1.2 years of experience: 0.4 + 0.2(3.8) + 0.5(1.2) = 1.76, and σ(1.76) ≈ 0.85. Terminology swap for the neural net world: coefficients are <em>weights</em>, intercepts are <em>biases</em>, and "leaked model weights" in the news means exactly these numbers, since weights plus architecture reconstruct the model.</p>
 
+<div class="widget" id="wlogit">
+<div class="wtitle">Try it: the fitted logistic regression (slides 60-63)</div>
+<div class="row">GPA <input type="range" id="lg_gpa" min="0" max="4" step="0.05" value="3.8"><span class="val" id="lg_gpa_v">3.80</span></div>
+<div class="row">Experience (yrs) <input type="range" id="lg_exp" min="0" max="10" step="0.1" value="1.2"><span class="val" id="lg_exp_v">1.2</span></div>
+<div class="calc" id="lg_out"></div>
+</div>
+
 <p><strong>Step 5: why bother with the graph?</strong> Because once it is drawn, the obvious move appears: you can put things in the middle. The input is fixed by the problem and the output is fixed by the problem, so the only agency you have is between them. The most basic thing to do with any data is run it through a linear function, so insert a stack of linear functions: k inputs compress to, say, 3 numbers. Then do it again, and again. Each transformation is capacity to learn something interesting, and this middle section is exactly where the automatic representation learning of step 3 lives.</p>
 
 <p><strong>Step 6: the nonlinearity.</strong> There is a catch: stacked linear functions collapse to one linear function, so without a nonlinearity between layers the entire effort is wasted. Each node therefore applies an <em>activation function</em>, a scalar-in scalar-out function, after its linear sum. The menu:</p>
@@ -110,6 +128,19 @@ exp ────0.5───┘     ▲
 
 <p>The ReLU passes positive numbers through unchanged and squashes negatives to zero, and many practitioners credit it as a key reason deep learning took off (the gradient story behind that lands in lecture 2). The rule he repeats: hidden layers get ReLUs, no deep thought needed; the output activation is dictated by the output type, so you have no choice there. There is a menagerie of alternatives (tanh, leaky ReLU, GELU, swish) you can ignore in practice.</p>
 
+<div class="widget" id="wact">
+<div class="wtitle">Try it: activation functions (slides 86-92)</div>
+<div class="row">
+<button data-f="relu" class="on">ReLU</button>
+<button data-f="sigmoid">sigmoid</button>
+<button data-f="tanh">tanh</button>
+<button data-f="linear">linear</button>
+</div>
+<div class="row">input a <input type="range" id="ac_a" min="-5" max="5" step="0.1" value="1.5"><span class="val" id="ac_a_v">1.5</span></div>
+<svg id="ac_svg" viewBox="0 0 320 170"></svg>
+<div class="calc" id="ac_out"></div>
+</div>
+
 <p><strong>Step 7: assemble and name everything.</strong> A <em>neuron</em> is a linear function followed by an activation: many numbers in, one number out. A vertical stack of neurons is a <em>layer</em>. Input layer and output layer are given; everything between is a <em>hidden layer</em>. If every neuron's output feeds every neuron in the next layer, the layer is <em>fully connected</em> or <em>dense</em>. Logistic regression is a neural network with zero hidden layers, and deep learning is neural networks with many. Data flowing strictly left to right makes it a <em>feedforward</em> network, and the whole arrangement of layers, sizes, and activations is the <em>architecture</em>. Transformers and CNNs, coming later, are just particular architectures.</p>
 
 <p><strong>Step 8: the concept check.</strong> Build the interview model as a real network: 2 inputs, one hidden layer of 3 ReLUs, sigmoid output.</p>
@@ -120,19 +151,22 @@ x2 ──┴──▶ ReLU ──┘
      2·3 weights   3·1 weights
      + 3 biases    + 1 bias      = 13 parameters</div>
 
-<p>The class guessed 12 and 9 before landing on 13, because everyone forgets the biases. His standing instruction: hand-count parameters for your first few networks until it is reflexive, because transformers will be hard if the mechanics are not automatic. The forward pass in code (my addition, not from the lecture, but it is exactly the arithmetic he walks through on the slide):</p>
+<p>The class guessed 12 and 9 before landing on 13, because everyone forgets the biases. His standing instruction: hand-count parameters for your first few networks until it is reflexive, because transformers will be hard if the mechanics are not automatic. Slides 100-104 then assume the network has been trained and walk one input through it by hand. These are the actual weights from the slides:</p>
 
-<pre><code>import numpy as np
+<pre><code>a1 = max(0, -0.3 + 0.5*x1 + 0.1*x2)
+a2 = max(0,  0.2 - 0.1*x1 + 0.3*x2)
+a3 = max(0,  0.5 + 0.2*x1 - 0.1*x2)
+y  = sigmoid(0.05 - 0.2*a1 - 0.3*a2 - 0.15*a3)</code></pre>
 
-W1 = np.array([[0.9, -0.3, 0.2],
-               [0.1,  0.7, 0.5]])
-b1 = np.array([0.1, -0.2, 0.3])
-W2 = np.array([[0.6], [-0.4], [0.8]])
-b2 = np.array([0.05])
+<div class="widget" id="wnet">
+<div class="wtitle">Try it: forward pass through the trained 2-3-1 network (slides 100-104)</div>
+<div class="row">x1 <input type="range" id="nn_x1" min="-5" max="12" step="0.1" value="2.3"><span class="val" id="nn_x1_v">2.3</span></div>
+<div class="row">x2 <input type="range" id="nn_x2" min="-5" max="12" step="0.1" value="10.2"><span class="val" id="nn_x2_v">10.2</span></div>
+<svg id="nn_svg" viewBox="0 0 340 190"></svg>
+<div class="calc" id="nn_out"></div>
+</div>
 
-x = np.array([3.8, 1.2])
-h = np.maximum(0, x @ W1 + b1)
-p = 1 / (1 + np.exp(-(h @ W2 + b2)))</code></pre>
+<p>At the slide defaults x = (2.3, 10.2), the bottom neuron's linear sum is negative, the ReLU zeroes it out, and y lands at 0.226, exactly the number on slide 104. Drag the sliders and watch neurons die and revive as their sums cross zero.</p>
 
 <p>Written out as one formula, even this 13-parameter network is an unreadable nest of maxes and exponentials, far more complicated than the logistic regression it grew from, with the same two inputs. That complexity is where the capability comes from, provided you can train it, which is lecture 2's job.</p>
 
@@ -248,6 +282,81 @@ true y ────────────────────────�
 </ul>
 
 <p>Course page with slides, notes, and assignments: <a href="https://ocw.mit.edu/courses/15-773-hands-on-deep-learning-spring-2024/">OCW 15.773</a>. Lecture content is CC BY-NC-SA.</p>
+
+<script>
+function sig(a){return 1/(1+Math.exp(-a))}
+function f2(x,n){return x.toFixed(n===undefined?2:n)}
+
+// logistic widget
+function lgU(){
+var g=+document.getElementById('lg_gpa').value, e=+document.getElementById('lg_exp').value;
+document.getElementById('lg_gpa_v').textContent=f2(g);
+document.getElementById('lg_exp_v').textContent=f2(e,1);
+var a=0.4+0.2*g+0.5*e;
+document.getElementById('lg_out').innerHTML=
+'a = 0.4 + 0.2('+f2(g)+') + 0.5('+f2(e,1)+') = '+f2(a)+'<br>'+
+'P(interview) = &sigma;('+f2(a)+') = <span class="big">'+f2(sig(a))+'</span>';
+}
+['lg_gpa','lg_exp'].forEach(function(id){document.getElementById(id).addEventListener('input',lgU)});
+lgU();
+
+// activation widget
+var acF='relu';
+var acFn={relu:function(a){return Math.max(0,a)},sigmoid:sig,tanh:Math.tanh,linear:function(a){return a}};
+var acLbl={relu:'max(0, a)',sigmoid:'1/(1+e^-a)',tanh:'tanh(a)',linear:'a'};
+document.querySelectorAll('#wact button').forEach(function(b){
+b.addEventListener('click',function(){
+document.querySelectorAll('#wact button').forEach(function(x){x.classList.remove('on')});
+b.classList.add('on');acF=b.dataset.f;acU();});});
+function acU(){
+var a=+document.getElementById('ac_a').value;
+document.getElementById('ac_a_v').textContent=f2(a,1);
+var W=320,H=170,cx=W/2,cy=H/2,sx=28,sy=26;
+var pts='';
+for(var x=-5;x<=5;x+=0.1){var y=acFn[acF](x);pts+=(cx+x*sx)+','+(cy-Math.max(-2.8,Math.min(2.8,y))*sy)+' ';}
+var py=acFn[acF](a);
+var s='<line x1="0" y1="'+cy+'" x2="'+W+'" y2="'+cy+'" stroke="#E7E7E2"/>'+
+'<line x1="'+cx+'" y1="0" x2="'+cx+'" y2="'+H+'" stroke="#E7E7E2"/>'+
+'<polyline points="'+pts+'" fill="none" stroke="#2545FF" stroke-width="2"/>'+
+'<circle cx="'+(cx+a*sx)+'" cy="'+(cy-Math.max(-2.8,Math.min(2.8,py))*sy)+'" r="5" fill="#17171C"/>';
+document.getElementById('ac_svg').innerHTML=s;
+document.getElementById('ac_out').innerHTML=acLbl[acF]+' at a = '+f2(a,1)+' &rarr; <span class="big">'+f2(py)+'</span>';
+}
+document.getElementById('ac_a').addEventListener('input',acU);
+acU();
+
+// network widget
+function nnU(){
+var x1=+document.getElementById('nn_x1').value, x2=+document.getElementById('nn_x2').value;
+document.getElementById('nn_x1_v').textContent=f2(x1,1);
+document.getElementById('nn_x2_v').textContent=f2(x2,1);
+var z1=-0.3+0.5*x1+0.1*x2, z2=0.2-0.1*x1+0.3*x2, z3=0.5+0.2*x1-0.1*x2;
+var a1=Math.max(0,z1), a2=Math.max(0,z2), a3=Math.max(0,z3);
+var zy=0.05-0.2*a1-0.3*a2-0.15*a3, y=sig(zy);
+var iX=40,hX=170,oX=300,iY=[65,125],hY=[40,95,150],oY=95;
+var s='';
+[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]].forEach(function(p){
+s+='<line x1="'+iX+'" y1="'+iY[p[0]]+'" x2="'+hX+'" y2="'+hY[p[1]]+'" stroke="#E7E7E2"/>';});
+var A=[a1,a2,a3];
+hY.forEach(function(hy,i){
+s+='<line x1="'+hX+'" y1="'+hy+'" x2="'+oX+'" y2="'+oY+'" stroke="'+(A[i]>0?'#2545FF':'#E7E7E2')+'"/>';});
+s+='<circle cx="'+iX+'" cy="'+iY[0]+'" r="16" fill="#fff" stroke="#17171C"/><text x="'+iX+'" y="'+(iY[0]+4)+'" text-anchor="middle" font-size="10">'+f2(x1,1)+'</text>';
+s+='<circle cx="'+iX+'" cy="'+iY[1]+'" r="16" fill="#fff" stroke="#17171C"/><text x="'+iX+'" y="'+(iY[1]+4)+'" text-anchor="middle" font-size="10">'+f2(x2,1)+'</text>';
+hY.forEach(function(hy,i){
+var dead=A[i]===0;
+s+='<circle cx="'+hX+'" cy="'+hy+'" r="18" fill="'+(dead?'#FAFAF8':'#EEF1FF')+'" stroke="'+(dead?'#E7E7E2':'#2545FF')+'"/>';
+s+='<text x="'+hX+'" y="'+(hy+4)+'" text-anchor="middle" font-size="10" fill="'+(dead?'#6E6E76':'#17171C')+'">'+f2(A[i])+'</text>';});
+s+='<circle cx="'+oX+'" cy="'+oY+'" r="20" fill="#2545FF"/><text x="'+oX+'" y="'+(oY+4)+'" text-anchor="middle" font-size="10" fill="#fff">'+f2(y,3)+'</text>';
+document.getElementById('nn_svg').innerHTML=s;
+document.getElementById('nn_out').innerHTML=
+'a1 = max(0, -0.3 + 0.5('+f2(x1,1)+') + 0.1('+f2(x2,1)+')) = '+f2(a1)+'<br>'+
+'a2 = max(0, 0.2 - 0.1('+f2(x1,1)+') + 0.3('+f2(x2,1)+')) = '+f2(a2)+'<br>'+
+'a3 = max(0, 0.5 + 0.2('+f2(x1,1)+') - 0.1('+f2(x2,1)+')) = '+f2(a3)+'<br>'+
+'y  = &sigma;(0.05 - 0.2&middot;a1 - 0.3&middot;a2 - 0.15&middot;a3) = &sigma;('+f2(zy)+') = <span class="big">'+f2(y,3)+'</span>';
+}
+['nn_x1','nn_x2'].forEach(function(id){document.getElementById(id).addEventListener('input',nnU)});
+nnU();
+</script>
 </article>
 
 <footer><a href="../../">← back to all logs</a></footer>
