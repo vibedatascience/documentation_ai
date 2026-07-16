@@ -99,14 +99,14 @@ clean = " ".join(dict.fromkeys(sents))</code></pre>
 <h2>3. Visuals</h2>
 <p><strong>Option A, painterly imagery, for narrative content.</strong> An image model per slide. Style suffix that worked: "oil painting style, dramatic chiaroscuro lighting, muted palette, cinematic, no text, no words, no letters". Parallelize the calls. Composite in PIL: cover-crop the image to 1920×1080, dark gradient at the bottom, chapter label, wrapped headline, pull-quote.</p>
 <p><strong>Option B, lecture slides, for technical content.</strong> White template: heading, bullets on the left, a real matplotlib diagram on the right in a bordered card. Real plots, not generated images: activation curves, loss contours, network graphs, timelines. Give the script model a fixed diagram vocabulary and let it pick one per slide, each used at most once.</p>
-<p>Either way the first version I made was plain dark text cards. Technically fine, deadly boring. Imagery per slide is what makes it watchable.</p>
+<p>Either way, the first version I made was plain dark text cards, which were technically fine but deadly boring. Imagery per slide is what makes it watchable.</p>
 
 <h2>4. Voiceover</h2>
-<p><strong>Option A, edge-tts.</strong> Microsoft's neural voices. Free, pip-installable, zero setup. <code>en-US-GuyNeural</code> has a documentary feel; <code>en-GB-RyanNeural</code> when the source is British.</p>
+<p><strong>Option A, edge-tts.</strong> These are Microsoft's neural voices, and they are free, pip-installable, and need zero setup. <code>en-US-GuyNeural</code> has a documentary feel; <code>en-GB-RyanNeural</code> when the source is British.</p>
 <pre><code>pip install edge-tts
 edge-tts --voice en-US-GuyNeural --text "$NARRATION" --write-media slide_01.mp3</code></pre>
-<p><strong>Option B, steerable TTS.</strong> If you have an OpenAI key or an internal LLM proxy, <code>gpt-4o-mini-tts</code> takes an <code>instructions</code> field ("documentary narrator", "thinking out loud, uneven pacing") plus the per-slide tone from the script model. The instructions change delivery more than the voice choice does. Naturalness comes from writing fillers into the input text itself: ellipses, fragments, "so...", "right?". Sparse, 1-2 per slide.</p>
-<p>One clip per slide either way, so slide timing is driven by audio duration. No manual sync.</p>
+<p><strong>Option B, steerable TTS.</strong> If you have an OpenAI key or an internal LLM proxy, <code>gpt-4o-mini-tts</code> takes an <code>instructions</code> field ("documentary narrator", "thinking out loud, uneven pacing") plus the per-slide tone from the script model. The instructions change delivery more than the voice choice does. Naturalness comes from writing fillers into the input text itself: ellipses, fragments, "so...", "right?". Keep them sparse at 1-2 per slide.</p>
+<p>One clip per slide either way, so slide timing is driven by audio duration and nothing needs manual sync.</p>
 
 <h2>5. Render</h2>
 <p>Raw ffmpeg, one segment per slide: pair the PNG with its MP3, apply a slow zoompan, fade, then concat.</p>
@@ -124,10 +124,10 @@ ffmpeg -f concat -safe 0 -i segments.txt -c copy final.mp4</code></pre>
 </ul>
 
 <h2>Gotchas</h2>
-<div class="gotcha"><strong>GOTCHA · ROLLING CAPTIONS</strong><p style="margin:6px 0 0">Strip tags, unescape, sentence-split, then dedupe. In that order.</p></div>
+<div class="gotcha"><strong>GOTCHA · ROLLING CAPTIONS</strong><p style="margin:6px 0 0">Strip tags, unescape, sentence-split, then dedupe, in that order.</p></div>
 <div class="gotcha"><strong>GOTCHA · MOVIEPY IS SLOW</strong><p style="margin:6px 0 0">moviepy timed out at 600s rendering what raw ffmpeg zoompan did in 13s. Use ffmpeg subprocess calls directly.</p></div>
 <div class="gotcha"><strong>GOTCHA · TLS + EDGE-TTS</strong><p style="margin:6px 0 0">Behind an egress proxy with a self-signed cert, edge-tts's websocket TLS verification fails. Bypass verification for that one connection only.</p></div>
-<div class="gotcha"><strong>GOTCHA · SANDBOX SUBPROCESS GUARDS</strong><p style="margin:6px 0 0">Some sandboxes block subprocess commands built from variables or f-strings. Compute durations and frame counts first, print them, then emit fully literal ffmpeg commands. Tedious but reliable.</p></div>
+<div class="gotcha"><strong>GOTCHA · SANDBOX SUBPROCESS GUARDS</strong><p style="margin:6px 0 0">Some sandboxes block subprocess commands built from variables or f-strings. Compute durations and frame counts first, print them, then emit fully literal ffmpeg commands. It is tedious but reliable.</p></div>
 <div class="gotcha"><strong>GOTCHA · PATHS MOVE</strong><p style="margin:6px 0 0">Output dirs can change if the session restarts. Never hardcode tmp paths across cells; re-check and re-glob each cell. Run the whole pipeline in one go and save intermediates as you go.</p></div>
 
 <h2>Links</h2>
