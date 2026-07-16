@@ -48,9 +48,7 @@ footer a{color:var(--muted)}
 </header>
 
 <article>
-<p><strong>LONG ISLAND CITY, N.Y.</strong> -- A 31-minute podcast interview was beaten 3.5 minutes to nil here Wednesday, as a five-stage pipeline turned long YouTube videos into short narrated slideshows in a result that surprised nobody who watched the buildup.</p>
-
-<p>The pipeline, unfancied at kickoff, produced three wins from three: the 31-minute interview cut to 3.5 minutes, a 60-minute football podcast condensed to 9.5, and a 60-minute MIT lecture reduced to an 11.3-minute, 19-chapter explainer. All three finished with designed slides, full-bleed imagery, neural voiceover and slow Ken Burns zooms.</p>
+<p>A 31-minute podcast interview became a 3.5-minute video. A 60-minute lecture became an 11-minute explainer with 19 chapters and custom diagrams. The pipeline that did it has five stages, runs end to end in one session, and uses nothing exotic: a transcript API, an LLM, PIL, edge-tts and ffmpeg.</p>
 
 <div class="pipeline">YouTube URL
    │
@@ -69,8 +67,8 @@ footer a{color:var(--muted)}
    ▼
 <b>[5] render</b>       ffmpeg: zoompan + fades → final.mp4</div>
 
-<h2>Transcript wins the midfield battle</h2>
-<p>Every good move started from the back. For YouTube sources, a transcript API beats downloading the full video for pace and never looked troubled:</p>
+<h2>Get the transcript</h2>
+<p>For YouTube, a transcript API is faster than downloading the video:</p>
 <pre><code>import http.client, json
 
 conn = http.client.HTTPSConnection("easysubapi.p.rapidapi.com")
@@ -83,47 +81,47 @@ headers = {
 conn.request("POST", "/api/easysubapi-get-transcript", payload, headers)
 data = json.loads(conn.getresponse().read())
 frames = data["result"][0]["data"]["frames"]</code></pre>
-<p>For non-YouTube sources, the bench option is ffmpeg audio extraction plus local <code>faster-whisper</code> transcription. Reliable, if a step slower.</p>
+<p>For non-YouTube sources, extract audio with ffmpeg and transcribe locally with <code>faster-whisper</code>.</p>
 
-<h2>Rolling captions nearly cause an upset</h2>
-<p>YouTube's auto-captions repeat every phrase two to four times across frames and arrive riddled with HTML tags. Exact-match dedup alone was chasing shadows. The correct shape: strip tags, unescape, sentence-split, drop consecutive duplicates, dedupe.</p>
+<h2>Clean and distill</h2>
+<p>Auto-captions repeat every phrase two to four times across frames and arrive full of HTML tags. Exact-match dedup is not enough. Strip tags, unescape, sentence-split, drop consecutive duplicates, dedupe:</p>
 <pre><code>import re, html
 
 text = " ".join(re.sub(r"&lt;[^&gt;]+&gt;", "", html.unescape(f["message"])) for f in frames)
 sents = re.split(r"(?&lt;=[.!?]) +", text)
 sents = [s for i, s in enumerate(sents) if i == 0 or s != sents[i-1]]
 clean = " ".join(dict.fromkeys(sents))</code></pre>
-<p>From there the LLM runs the distillation: 8-20 slides, each with a headline, 2-3 lines of narration and an image direction. This is where the match is won. Prompt for core ideas and the best verbatim quotes, never a flat summary.</p>
+<p>Then the LLM condenses the clean transcript into a slide script: 8-20 slides, each with a headline, 2-3 lines of narration and an image direction. This step decides the quality of the whole thing. Prompt for core ideas and the best verbatim quotes, not a flat summary.</p>
 
-<h2>Plain cards flatter to deceive</h2>
-<p>The first version -- dark text cards, technically sound -- was dire viewing, and the crowd let it hear about it. The turnaround came from three changes at the break:</p>
+<h2>Build the slides</h2>
+<p>1920×1080 PNGs via PIL. The first version was dark text cards. Technically fine, deadly boring. Three changes fixed it:</p>
 <ul>
   <li><strong>Full-bleed imagery</strong> matched to each slide: public domain paintings for a history podcast, stadium photography for football, custom diagrams for a lecture</li>
   <li><strong>Cinematic grading</strong>: darken and desaturate so white text sits on top</li>
   <li><strong>Programmatic diagrams</strong> (PIL/matplotlib) for technical content: network architectures, tactical boards, activation curves. Beats hunting for stock</li>
 </ul>
 
-<h2>edge-tts a shrewd signing on a free</h2>
-<p>Microsoft's neural voices, pip-installable, no fee. One MP3 per slide, so slide timing is driven by audio duration and manual sync never enters the conversation.</p>
+<h2>Voiceover</h2>
+<p>edge-tts, Microsoft's neural voices. Pip-installable, free, good. One MP3 per slide, so slide timing is driven by audio duration. No manual sync.</p>
 <pre><code>pip install edge-tts
 edge-tts --voice en-US-GuyNeural --text "$NARRATION" --write-media slide_01.mp3</code></pre>
-<p><code>en-US-GuyNeural</code> for a documentary feel; <code>en-GB-RyanNeural</code> when the source is British.</p>
+<p><code>en-US-GuyNeural</code> has a documentary feel. <code>en-GB-RyanNeural</code> when the source is British.</p>
 
-<h2>ffmpeg scores the winner in stoppage time</h2>
-<p>Each slide pairs its PNG with its MP3, takes a slow zoompan (alternating in and out), crossfades, then concatenates:</p>
+<h2>Render</h2>
+<p>Each slide pairs its PNG with its MP3, gets a slow zoompan (alternate in and out between slides), crossfades, then concatenates:</p>
 <pre><code>ffmpeg -loop 1 -i slide_01.png -i slide_01.mp3 \
   -vf "zoompan=z='min(zoom+0.0008,1.08)':d=125*10:s=1920x1080,fps=25" \
   -c:v libx264 -pix_fmt yuv420p -shortest seg_01.mp4
 
 ffmpeg -f concat -safe 0 -i segments.txt -c copy final.mp4</code></pre>
 
-<h2>Talking points</h2>
-<div class="gotcha"><strong>GOTCHA · ROLLING CAPTIONS</strong><p style="margin:6px 0 0">Strip tags, unescape, sentence-split, then dedupe. In that order or not at all.</p></div>
+<h2>Gotchas</h2>
+<div class="gotcha"><strong>GOTCHA · ROLLING CAPTIONS</strong><p style="margin:6px 0 0">Strip tags, unescape, sentence-split, then dedupe. In that order.</p></div>
 <div class="gotcha"><strong>GOTCHA · TLS + EDGE-TTS</strong><p style="margin:6px 0 0">Behind an egress proxy with a self-signed cert, edge-tts's websocket TLS verification fails. Bypass verification for that one connection only.</p></div>
 <div class="gotcha"><strong>GOTCHA · PLAIN CARDS ARE BORING</strong><p style="margin:6px 0 0">Text-on-dark-card slides feel like a settings screen. Imagery per slide is the difference between "delete" and "rewatch".</p></div>
 <div class="gotcha"><strong>GOTCHA · ONE SESSION</strong><p style="margin:6px 0 0">Ephemeral sandboxes reset. Run the whole pipeline in one go and save intermediates as you go.</p></div>
 
-<h2>Full time</h2>
+<h2>Results</h2>
 <table>
 <tr><th>Source</th><th>Length in</th><th>Length out</th><th>Visual treatment</th></tr>
 <tr><td>Ken Burns podcast interview</td><td>31 min</td><td>3.5 min</td><td>Public domain paintings, Ken Burns zoom (obviously)</td></tr>
