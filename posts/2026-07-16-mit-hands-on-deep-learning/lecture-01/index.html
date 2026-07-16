@@ -36,6 +36,12 @@ th{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.06em
 .pipeline b{color:var(--cobalt);font-weight:500}
 footer{border-top:1px solid var(--rule);padding:24px 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted)}
 footer a{color:var(--muted)}
+.toc{position:fixed;top:120px;left:calc(50% - 340px - 200px);width:170px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;line-height:1.5}
+.toc .tlabel{color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;font-size:0.68rem}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 0 4px 10px;border-left:2px solid var(--rule)}
+.toc a:hover{color:var(--ink)}
+.toc a.here{color:var(--cobalt);border-left-color:var(--cobalt);font-weight:500}
+@media(max-width:1100px){.toc{display:none}}
 .widget{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:18px;margin:0 0 18px}
 .widget .wtitle{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--cobalt);margin-bottom:12px}
 .widget .row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;flex-wrap:wrap}
@@ -53,6 +59,16 @@ footer a{color:var(--muted)}
 <div class="wrap">
 <div class="top"><a href="../">← MIT 15.773 notes</a></div>
 
+<nav class="toc">
+<div class="tlabel">On this page</div>
+<a href="#the-problem">The problem</a>
+<a href="#the-idea">The idea</a>
+<a href="#the-mechanics">The mechanics</a>
+<a href="#design-choices">Design choices</a>
+<a href="#sharp-edges">Sharp edges</a>
+<a href="#sets-up">Sets up</a>
+</nav>
+
 <header class="post">
   <div class="meta"><span>[2026-07-16]</span><span class="tag">DATA-SCIENCE</span></div>
   <h1>Lecture 1: Introduction to neural networks and deep learning</h1>
@@ -64,7 +80,7 @@ footer a{color:var(--muted)}
 <tr><td><a href="https://www.youtube.com/watch?v=kyQ0CRkYhy4">YouTube</a></td><td><a href="https://ocw.mit.edu/courses/15-773-hands-on-deep-learning-spring-2024/pages/lecture-slides/">OCW</a></td><td>56 min</td><td>none, this one is all concepts</td></tr>
 </table>
 
-<h2>The problem</h2>
+<h2 id="the-problem">The problem</h2>
 <p>AI was founded at the 1956 Dartmouth workshop (Minsky, McCarthy, and Shannon were all MIT), and the founders expected the field to be substantially solved within months. The slide framing is that the decades since have produced a sequence of breakthroughs, each one an answer to the previous approach's failure:</p>
 
 <div class="pipeline"><b>traditional AI</b>   interview experts, hand-write if-then rules
@@ -82,12 +98,12 @@ footer a{color:var(--muted)}
 
 <p>Machine learning (learn a mapping from input-output pairs using statistics; linear regression counts) fixed that, but only for structured data, meaning data that fits in spreadsheet columns. An image is three tables of numbers, one each for red, green, and blue light, every value 0 to 255. A 251 in the blue table means "lots of blue light here" whether the object is sky, water, or paint. The raw numbers carry no intrinsic meaning, so no statistical algorithm can use them directly. The historical workaround was manual feature engineering: measure beak length, wingspan, and primary color, and build a spreadsheet from the picture. That is a <em>representation</em> of the raw data, and building representations by hand was the human bottleneck. Whole PhDs went into a representation for one narrow problem, like detecting one stroke type in CT scans.</p>
 
-<h2>The idea</h2>
+<h2 id="the-idea">The idea</h2>
 <p>Deep learning learns the representations automatically from the raw input, then pipes them into what is basically a linear or logistic regression at the end. Three forces converged to make the old neural network idea finally work: new algorithmic tricks, large datasets, and GPUs.</p>
 
 <p>The business consequence he pushes: every sensor in the world can now detect, recognize, and classify what it senses. Face ID is a camera plus an image classifier. Regina Barzilay's mammogram model at MGH flagged a problem in her own years-old scan that a radiologist had cleared. Smart binoculars that name the bird you are looking at shipped two weeks before the lecture. His startup heuristic: find a sensor, ask what a model behind it could do. Generative AI is the output-side unlock: models could always emit a few numbers (a probability, ten class scores, GPS coordinates), but generating pictures, audio, and text is new, and multimodal models that mix them in one conversation are becoming the norm.</p>
 
-<h2>The mechanics</h2>
+<h2 id="the-mechanics">The mechanics</h2>
 <p><strong>Logistic regression, redrawn as a graph.</strong> The worked example is a hiring dataset: two inputs (GPA, years of experience), binary label (called for interview or not). Fitting logistic regression with any standard tool gives intercept 0.4 and coefficients 0.2 (GPA) and 0.5 (experience). Redraw the formula as a graph:</p>
 
 <div class="pipeline">GPA ────0.2───┐
@@ -158,10 +174,10 @@ y  = sigmoid(0.05 - 0.2*a1 - 0.3*a2 - 0.15*a3)</code></pre>
 
 <p>At the slide defaults x = (2.3, 10.2), the bottom neuron's linear sum is negative, the ReLU zeroes it out, and y lands at 0.226, exactly the number on slide 104. Drag the sliders and watch neurons die and revive as their sums cross zero. Written out as a single formula (slide 105 does it), even this 13-parameter network is an unreadable nest of maxes and exponentials, far more complicated than the logistic regression it grew from, with the same two inputs. That complexity is where the capability comes from, provided you can train it.</p>
 
-<h2>Design choices</h2>
+<h2 id="design-choices">Design choices</h2>
 <p>The closing summary slide draws the line explicitly. Dictated by the problem: the input layer (one node per independent variable) and the output layer (its size and activation follow from what you are predicting). Yours to choose: the number of hidden layers, the number of neurons in each, and the hidden activation functions. The course default for that last one is ReLU, no deep thought needed. How to choose the rest is a running theme of the next lectures, and the general answer previewed here is experimentation, not theory.</p>
 
-<h2>Sharp edges</h2>
+<h2 id="sharp-edges">Sharp edges</h2>
 <ul>
 <li>Parameter counts hide the biases. Every wrong guess in class (12, 9) missed them. Count weights as products of adjacent layer sizes, then add one bias per non-input neuron.</li>
 <li>Interpretability, from Q&amp;A: you always know exactly how a data point flows through the network, every multiplication is visible, but you cannot easily credit any single input for the outcome, because everything gets enmeshed in the middle layers.</li>
@@ -169,7 +185,7 @@ y  = sigmoid(0.05 - 0.2*a1 - 0.3*a2 - 0.15*a3)</code></pre>
 <li>The output activation is not a style choice. Probability means sigmoid, plain number means linear. Mismatching it breaks the model's meaning before training even starts.</li>
 </ul>
 
-<h2>Sets up</h2>
+<h2 id="sets-up">Sets up</h2>
 <p>The forward pass assumed someone handed us trained weights. Lecture 2 answers where they come from: define a loss function measuring how bad the current weights are, then walk downhill on it with gradient descent, minibatch by minibatch, gradients computed via backprop.</p>
 <script>
 function sig(a){return 1/(1+Math.exp(-a))}
@@ -244,6 +260,16 @@ document.getElementById('nn_out').innerHTML=
 }
 ['nn_x1','nn_x2'].forEach(function(id){document.getElementById(id).addEventListener('input',nnU)});
 nnU();
+
+// toc scroll-spy
+var tocLinks=document.querySelectorAll('.toc a');
+var tocSecs=[].map.call(tocLinks,function(a){return document.getElementById(a.getAttribute('href').slice(1))});
+function spy(){
+var i=0;
+for(var j=0;j<tocSecs.length;j++){if(tocSecs[j]&&tocSecs[j].getBoundingClientRect().top<140)i=j;}
+tocLinks.forEach?tocLinks.forEach(function(a,k){a.classList.toggle('here',k===i)}):0;
+}
+window.addEventListener('scroll',spy);spy();
 </script>
 </article>
 
