@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIT 15.773 Hands-On Deep Learning: notes on all 11 lectures | vibelogs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FAFAF8;--ink:#17171C;--cobalt:#2545FF;--muted:#6E6E76;--rule:#E7E7E2;--chip:#EEF1FF}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.7}
+.wrap{max-width:680px;margin:0 auto;padding:0 24px}
+.top{padding:40px 0 0;font-family:'IBM Plex Mono',monospace;font-size:0.8rem}
+.top a{color:var(--muted);text-decoration:none}
+.top a:hover{color:var(--cobalt)}
+header.post{padding:32px 0 24px;border-bottom:1px solid var(--rule)}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted);display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.tag{background:var(--chip);color:var(--cobalt);padding:1px 8px;border-radius:4px;font-weight:500}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);letter-spacing:-0.02em;line-height:1.2}
+article{padding:32px 0 60px}
+article h2{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:1.3rem;margin:36px 0 12px}
+article p{margin:0 0 18px}
+article ol,article ul{margin:0 0 18px 22px}
+article li{margin-bottom:8px}
+article a{color:var(--cobalt)}
+pre{background:#111116;color:#E8E8EE;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;line-height:1.55;padding:16px 18px;border-radius:8px;overflow-x:auto;margin:0 0 18px}
+code{font-family:'IBM Plex Mono',monospace;font-size:0.86em;background:var(--chip);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:0.9rem}
+th,td{border:1px solid var(--rule);padding:8px 12px;text-align:left;vertical-align:top}
+th{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff}
+.gotcha{border-left:3px solid var(--cobalt);padding:12px 16px;background:#fff;margin:0 0 18px}
+.gotcha strong{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;letter-spacing:0.08em;color:var(--cobalt)}
+.pipeline{font-family:'IBM Plex Mono',monospace;font-size:0.8rem;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:16px 18px;margin:0 0 18px;overflow-x:auto;white-space:pre;line-height:1.8;color:var(--ink)}
+.pipeline b{color:var(--cobalt);font-weight:500}
+footer{border-top:1px solid var(--rule);padding:24px 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted)}
+footer a{color:var(--muted)}
+.widget{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:18px;margin:0 0 18px}
+.widget .wtitle{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--cobalt);margin-bottom:12px}
+.widget .row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;flex-wrap:wrap}
+.widget input[type=range]{flex:1;min-width:120px;accent-color:var(--cobalt)}
+.widget .val{min-width:52px;text-align:right;font-weight:500}
+.widget .calc{font-family:'IBM Plex Mono',monospace;font-size:0.8rem;background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;margin-top:10px;line-height:1.9;overflow-x:auto}
+.widget .big{color:var(--cobalt);font-weight:700}
+.widget button{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;border:1px solid var(--rule);background:var(--paper);padding:4px 10px;border-radius:5px;cursor:pointer}
+.widget button.on{background:var(--chip);border-color:var(--cobalt);color:var(--cobalt);font-weight:500}
+.widget svg{width:100%;height:auto;display:block}
+.widget svg text{font-family:'IBM Plex Mono',monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../../">← vibelogs</a></div>
+
+<header class="post">
+  <div class="meta"><span>[2026-07-16]</span><span class="tag">DATA-SCIENCE</span></div>
+  <h1>MIT 15.773 Hands-On Deep Learning: notes on all 11 lectures</h1>
+</header>
+
+<article>
+<p>Course: <a href="https://ocw.mit.edu/courses/15-773-hands-on-deep-learning-spring-2024/">MIT 15.773 Hands-On Deep Learning</a> (OCW, Spring 2024).</p>
+
+<table>
+<tr><th>#</th><th>Topic</th><th>Video</th></tr>
+<tr><td>1</td><td>Neural networks from logistic regression up</td><td><a href="https://www.youtube.com/watch?v=kyQ0CRkYhy4">watch</a></td></tr>
+<tr><td>2</td><td>Loss functions, gradient descent, SGD, backprop</td><td><a href="https://www.youtube.com/watch?v=3Lr8nVUDCpk">watch</a></td></tr>
+<tr><td>3</td><td>Keras workflow, tabular data, softmax, Fashion-MNIST</td><td><a href="https://www.youtube.com/watch?v=8QuyDcMIdRc">watch</a></td></tr>
+<tr><td>4</td><td>CNNs, pooling, transfer learning with ResNet</td><td><a href="https://www.youtube.com/watch?v=8xh7Y0pBrCE">watch</a></td></tr>
+<tr><td>5</td><td>NLP basics, bag of words, n-grams, dropout</td><td><a href="https://www.youtube.com/watch?v=duBLxHjaecQ">watch</a></td></tr>
+<tr><td>6</td><td>Word embeddings, GloVe, fine-tuning embeddings</td><td><a href="https://www.youtube.com/watch?v=LqFc0z-pQTg">watch</a></td></tr>
+<tr><td>7</td><td>Self-attention and the transformer encoder</td><td><a href="https://www.youtube.com/watch?v=IeF7aATDaw4">watch</a></td></tr>
+<tr><td>8</td><td>Q/K/V matrices, multi-head attention, BERT, ViT</td><td><a href="https://www.youtube.com/watch?v=v-lHsawHyaI">watch</a></td></tr>
+<tr><td>9</td><td>Causal LMs, next-token prediction, decoding, BPE</td><td><a href="https://www.youtube.com/watch?v=KGDe1QvfKJ8">watch</a></td></tr>
+<tr><td>10</td><td>Instruction tuning, RLHF, prompting, RAG, LoRA</td><td><a href="https://www.youtube.com/watch?v=d-tngNnaG4U">watch</a></td></tr>
+<tr><td>11</td><td>Diffusion models, U-Net, CLIP, Stable Diffusion</td><td><a href="https://www.youtube.com/watch?v=NQBhhRG-Pe4">watch</a></td></tr>
+</table>
+
+</article>
+
+<footer><a href="../../">← back to all logs</a></footer>
+</div>
+</body>
+</html>
