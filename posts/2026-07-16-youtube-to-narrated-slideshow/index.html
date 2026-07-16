@@ -48,108 +48,100 @@ footer a{color:var(--muted)}
 </header>
 
 <article>
-<p>I don't have 90 minutes for every podcast or lecture I want to get through, so I built a pipeline that condenses them into short videos I can watch on the subway. Nothing in the stack is exotic: a transcript API, an LLM, PIL, edge-tts and ffmpeg.</p>
+<p>I don't have 90 minutes for every podcast or lecture I want to get through, so I built a pipeline that condenses them into short videos I can watch on the subway. Nothing in the stack is exotic. Each step has options depending on the content and what you have access to.</p>
 
-<div class="pipeline">YouTube URL
+<div class="pipeline">YouTube URL / video file
    │
    ▼
-<b>[1] transcript</b>   EasySubAPI (or yt-dlp + Whisper)
-   │
+<b>[1] transcript</b>   A. transcript API (YouTube)
+   │             B. ffmpeg audio + faster-whisper (any video)
    ▼
-<b>[2] distill</b>      LLM condenses to 8-20 slide script
-   │
+<b>[2] script</b>       any capable LLM → strict JSON slide script
+   │             adaptive slide count, 55-80 words/slide
    ▼
-<b>[3] slides</b>       1920×1080 cards + real imagery/diagrams
-   │
+<b>[3] visuals</b>      A. AI-generated painterly imagery (narrative)
+   │             B. white lecture slides + matplotlib (technical)
+   │             composited to 1920×1080 PNGs via PIL
    ▼
-<b>[4] voiceover</b>    edge-tts, one clip per slide
-   │
+<b>[4] voiceover</b>    A. edge-tts (free, zero setup)
+   │             B. steerable TTS e.g. gpt-4o-mini-tts
    ▼
-<b>[5] render</b>       ffmpeg: zoompan + fades → final.mp4</div>
+<b>[5] render</b>       raw ffmpeg: zoompan + fades + score → final.mp4</div>
 
-<h2>Get the transcript</h2>
-<p>For YouTube, a transcript API is faster than downloading the video:</p>
-<pre><code>import http.client, json
+<h2>1. Transcript</h2>
+<p><strong>Option A, YouTube:</strong> a transcript API is faster than downloading the video.</p>
+<pre><code>import requests
 
-conn = http.client.HTTPSConnection("easysubapi.p.rapidapi.com")
-payload = json.dumps({"video_id": "VIDEO_ID"})
-headers = {
-    "x-rapidapi-key": "YOUR_KEY",
-    "x-rapidapi-host": "easysubapi.p.rapidapi.com",
-    "Content-Type": "application/json"
-}
-conn.request("POST", "/api/easysubapi-get-transcript", payload, headers)
-data = json.loads(conn.getresponse().read())
-frames = data["result"][0]["data"]["frames"]</code></pre>
-<p>For non-YouTube sources, extract audio with ffmpeg and transcribe locally with <code>faster-whisper</code>.</p>
-
-<h2>Clean and distill</h2>
-<p>Auto-captions repeat every phrase two to four times across frames and arrive full of HTML tags. Exact-match dedup is not enough. Strip tags, unescape, sentence-split, drop consecutive duplicates, dedupe:</p>
+r = requests.post(
+    "https://easysubapi.p.rapidapi.com/api/easysubapi-get-transcript",
+    json={"video_id": "VIDEO_ID"},
+    headers={"x-rapidapi-key": "YOUR_KEY"})
+frames = r.json()["result"][0]["data"]["frames"]</code></pre>
+<p>A 56-minute lecture is roughly 1,365 frames / 56k characters. Fits in a single LLM call with the script prompt.</p>
+<p><strong>Option B, any video file:</strong> extract audio with ffmpeg, transcribe locally with <code>faster-whisper</code> (tiny or base model, CPU int8 is fine).</p>
+<p>Auto-captions repeat every phrase two to four times and arrive full of HTML tags. Clean before use:</p>
 <pre><code>import re, html
 
 text = " ".join(re.sub(r"&lt;[^&gt;]+&gt;", "", html.unescape(f["message"])) for f in frames)
 sents = re.split(r"(?&lt;=[.!?]) +", text)
 sents = [s for i, s in enumerate(sents) if i == 0 or s != sents[i-1]]
 clean = " ".join(dict.fromkeys(sents))</code></pre>
-<p>Then the LLM condenses the clean transcript into a slide script: 8-20 slides, each with a headline, 2-3 lines of narration and an image direction. This step decides the quality of the whole thing. Prompt for core ideas and the best verbatim quotes, not a flat summary.</p>
 
-<h2>Build the slides</h2>
-<p>1920×1080 PNGs via PIL. The first version was dark text cards. Technically fine, deadly boring. Three changes fixed it:</p>
+<h2>2. Script</h2>
+<p>Any capable LLM works. Ask for strict JSON: title, subtitle, slides, each with heading, key points, narration, a tone direction for the TTS, and a diagram or image direction. Strip the ``` fences before <code>json.loads</code>.</p>
+<p>Three prompt decisions matter more than the model:</p>
 <ul>
-  <li><strong>Full-bleed imagery</strong> matched to each slide: public domain paintings for a history podcast, stadium photography for football, custom diagrams for a lecture</li>
-  <li><strong>Cinematic grading</strong>: darken and desaturate so white text sits on top</li>
-  <li><strong>Programmatic diagrams</strong> (PIL/matplotlib) for technical content: network architectures, tactical boards, activation curves. Beats hunting for stock</li>
+  <li><strong>Adaptive length.</strong> Don't fix the slide count. Let the model propose it from the content's density: a light 20-min talk might need 6-8 slides, a dense 90-min lecture 15-20. Cap narration at 55-80 words per slide.</li>
+  <li><strong>Keep the speaker's voice.</strong> Prompt the model to lift the speaker's own phrasings, quirks and asides verbatim from the transcript, lightly trimmed. The result should feel like the original speaker condensed, not a new narrator paraphrasing.</li>
+  <li><strong>Core ideas and best quotes,</strong> not a flat summary.</li>
 </ul>
 
-<h2>Voiceover</h2>
-<p>edge-tts, Microsoft's neural voices. Pip-installable, free, good. One MP3 per slide, so slide timing is driven by audio duration. No manual sync.</p>
+<h2>3. Visuals</h2>
+<p><strong>Option A, painterly imagery, for narrative content.</strong> An image model per slide. Style suffix that worked: "oil painting style, dramatic chiaroscuro lighting, muted palette, cinematic, no text, no words, no letters". Parallelize the calls. Composite in PIL: cover-crop the image to 1920×1080, dark gradient at the bottom, chapter label, wrapped headline, pull-quote.</p>
+<p><strong>Option B, lecture slides, for technical content.</strong> White template: heading, bullets on the left, a real matplotlib diagram on the right in a bordered card. Real plots, not generated images: activation curves, loss contours, network graphs, timelines. Give the script model a fixed diagram vocabulary and let it pick one per slide, each used at most once.</p>
+<p>Either way the first version I made was plain dark text cards. Technically fine, deadly boring. Imagery per slide is what makes it watchable.</p>
+
+<h2>4. Voiceover</h2>
+<p><strong>Option A, edge-tts.</strong> Microsoft's neural voices. Free, pip-installable, zero setup. <code>en-US-GuyNeural</code> has a documentary feel; <code>en-GB-RyanNeural</code> when the source is British.</p>
 <pre><code>pip install edge-tts
 edge-tts --voice en-US-GuyNeural --text "$NARRATION" --write-media slide_01.mp3</code></pre>
-<p><code>en-US-GuyNeural</code> has a documentary feel. <code>en-GB-RyanNeural</code> when the source is British.</p>
+<p><strong>Option B, steerable TTS.</strong> If you have an OpenAI key or an internal LLM proxy, <code>gpt-4o-mini-tts</code> takes an <code>instructions</code> field ("documentary narrator", "thinking out loud, uneven pacing") plus the per-slide tone from the script model. The instructions change delivery more than the voice choice does. Naturalness comes from writing fillers into the input text itself: ellipses, fragments, "so...", "right?". Sparse, 1-2 per slide.</p>
+<p>One clip per slide either way, so slide timing is driven by audio duration. No manual sync.</p>
 
-<h2>Render</h2>
-<p>Each slide pairs its PNG with its MP3, gets a slow zoompan (alternate in and out between slides), crossfades, then concatenates:</p>
+<h2>5. Render</h2>
+<p>Raw ffmpeg, one segment per slide: pair the PNG with its MP3, apply a slow zoompan, fade, then concat.</p>
 <pre><code>ffmpeg -loop 1 -i slide_01.png -i slide_01.mp3 \
-  -vf "zoompan=z='min(zoom+0.0008,1.08)':d=125*10:s=1920x1080,fps=25" \
-  -c:v libx264 -pix_fmt yuv420p -shortest seg_01.mp4
+  -filter_complex "[0:v]scale=1920:1080,zoompan=z='1+0.12*on/FRAMES':x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':d=FRAMES:s=1280x720:fps=24[v]" \
+  -map "[v]" -map 1:a -t DUR seg_01.mp4
 
 ffmpeg -f concat -safe 0 -i segments.txt -c copy final.mp4</code></pre>
+<p>Tuning that took iteration:</p>
+<ul>
+  <li>Alternate zoom in and zoom out between slides. Segment duration = narration + 1s.</li>
+  <li>12% zoom suits full-bleed imagery. Text slides need 4% or the words swim.</li>
+  <li>Fade each segment in/out 0.5s (video and audio), then concat with the demuxer.</li>
+  <li>Ambient score under the narration: synthesize in numpy (low sine stack + LFO + noise, faded), mix with amix. Volume 0.30 under imagery, 0.14 under lecture slides.</li>
+</ul>
 
 <h2>Gotchas</h2>
 <div class="gotcha"><strong>GOTCHA · ROLLING CAPTIONS</strong><p style="margin:6px 0 0">Strip tags, unescape, sentence-split, then dedupe. In that order.</p></div>
+<div class="gotcha"><strong>GOTCHA · MOVIEPY IS SLOW</strong><p style="margin:6px 0 0">moviepy timed out at 600s rendering what raw ffmpeg zoompan did in 13s. Use ffmpeg subprocess calls directly.</p></div>
 <div class="gotcha"><strong>GOTCHA · TLS + EDGE-TTS</strong><p style="margin:6px 0 0">Behind an egress proxy with a self-signed cert, edge-tts's websocket TLS verification fails. Bypass verification for that one connection only.</p></div>
-<div class="gotcha"><strong>GOTCHA · PLAIN CARDS ARE BORING</strong><p style="margin:6px 0 0">Text-on-dark-card slides feel like a settings screen. Imagery per slide is the difference between "delete" and "rewatch".</p></div>
-<div class="gotcha"><strong>GOTCHA · ONE SESSION</strong><p style="margin:6px 0 0">Ephemeral sandboxes reset. Run the whole pipeline in one go and save intermediates as you go.</p></div>
+<div class="gotcha"><strong>GOTCHA · SANDBOX SUBPROCESS GUARDS</strong><p style="margin:6px 0 0">Some sandboxes block subprocess commands built from variables or f-strings. Compute durations and frame counts first, print them, then emit fully literal ffmpeg commands. Tedious but reliable.</p></div>
+<div class="gotcha"><strong>GOTCHA · PATHS MOVE</strong><p style="margin:6px 0 0">Output dirs can change if the session restarts. Never hardcode tmp paths across cells; re-check and re-glob each cell. Run the whole pipeline in one go and save intermediates as you go.</p></div>
 
 <h2>Results</h2>
 <table>
 <tr><th>Source</th><th>Length in</th><th>Length out</th><th>Visual treatment</th></tr>
-<tr><td>Ken Burns podcast interview</td><td>31 min</td><td>3.5 min</td><td>Public domain paintings, Ken Burns zoom (obviously)</td></tr>
-<tr><td>Football Weekly, WC semi-final</td><td>~60 min</td><td>9.5 min</td><td>Stadium photography + drawn tactical boards</td></tr>
-<tr><td>MIT deep learning lecture</td><td>~60 min</td><td>11.3 min</td><td>14 custom diagrams, 19 chapters</td></tr>
+<tr><td>Ken Burns podcast interview</td><td>31 min</td><td>3.5 min</td><td>Painterly imagery, Ken Burns zoom (obviously)</td></tr>
+<tr><td>Football Weekly, WC semi-final</td><td>~60 min</td><td>9.5 min</td><td>Photography + drawn tactical boards</td></tr>
+<tr><td>MIT deep learning lecture</td><td>~60 min</td><td>11.3 min</td><td>Lecture slides, 14 matplotlib diagrams, 19 chapters</td></tr>
 </table>
-
-<h2>v2: what changed after more runs</h2>
-<p>The pipeline above is the v1 baseline. After running it against lectures and denser material, several pieces got replaced.</p>
-
-<p><strong>Steerable TTS beats plain TTS.</strong> If you have an internal LLM proxy or an OpenAI key, <code>gpt-4o-mini-tts</code> takes an <code>instructions</code> field ("Documentary narrator", "thinking out loud, uneven pacing") plus per-slide tone directions from the script model. The instructions change delivery more than the voice choice does. Naturalness comes from writing fillers into the input text itself: ellipses, fragments, "so...", "right?". Sparse, 1-2 per slide.</p>
-
-<p><strong>Keep the speaker's voice.</strong> Generic paraphrase narration sounds like a different person summarizing. Better: prompt the script model to lift the speaker's own phrasings, quirks and asides verbatim from the transcript, lightly trimmed. The result should feel like the original speaker condensed, not a new narrator.</p>
-
-<p><strong>Two visual modes.</strong> AI-generated painterly imagery (via an image model, style suffix like "oil painting, chiaroscuro, no text no words no letters") works for narrative content. For technical content, a white "lecture slide" template wins: heading, bullets on the left, a real matplotlib diagram on the right. Real plots, not generated images: activation curves, loss contours, network graphs. Give the script model a fixed diagram vocabulary and let it pick one per slide.</p>
-
-<p><strong>Adaptive length.</strong> Don't fix the slide count. Let the script model propose it from the content's density: a light 20-min talk might need 6-8 slides, a dense 90-min lecture 15-20. Cap narration at 55-80 words per slide.</p>
-
-<p><strong>Motion tuning.</strong> 12% Ken Burns zoom suits full-bleed imagery. Text slides need 4% or the words swim. Ambient score at 0.30 volume under imagery narration, 0.14 under lecture narration. The score itself can be synthesized in numpy: a low sine stack with an LFO and noise, faded in and out.</p>
-
-<div class="gotcha"><strong>GOTCHA · MOVIEPY IS SLOW</strong><p style="margin:6px 0 0">moviepy timed out at 600s rendering what raw ffmpeg zoompan did in 13s. Use ffmpeg subprocess calls directly.</p></div>
-<div class="gotcha"><strong>GOTCHA · SANDBOX SUBPROCESS GUARDS</strong><p style="margin:6px 0 0">Some sandboxes block subprocess commands built from variables or f-strings. Compute durations and frame counts first, print them, then emit fully literal ffmpeg commands. Tedious but reliable.</p></div>
-<div class="gotcha"><strong>GOTCHA · PATHS MOVE</strong><p style="margin:6px 0 0">Output dirs can change if the session restarts. Never hardcode tmp paths across cells; re-check and re-glob each cell.</p></div>
 
 <h2>Links</h2>
 <ul>
   <li><a href="https://github.com/rany2/edge-tts">edge-tts</a>: free neural TTS</li>
-  <li><a href="https://github.com/SYSTRAN/faster-whisper">faster-whisper</a>: local transcription fallback</li>
+  <li><a href="https://github.com/SYSTRAN/faster-whisper">faster-whisper</a>: local transcription</li>
   <li><a href="https://ffmpeg.org/ffmpeg-filters.html#zoompan">ffmpeg zoompan docs</a></li>
 </ul>
 </article>
