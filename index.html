@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vibelogs — AI walkthroughs by Rahul</title>
+<meta name="description" content="Hands-on walkthroughs of AI tools, agents, and workflows. Learning in public.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAFAF8;
+  --ink:#17171C;
+  --cobalt:#2545FF;
+  --muted:#6E6E76;
+  --rule:#E7E7E2;
+  --chip:#EEF1FF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.6;
+}
+.wrap{max-width:720px;margin:0 auto;padding:0 24px}
+header{padding:72px 0 40px}
+.wordmark{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:clamp(2.4rem,7vw,3.4rem);
+  letter-spacing:-0.03em;
+}
+.wordmark .cursor{
+  display:inline-block;
+  width:0.5em;height:0.08em;
+  background:var(--cobalt);
+  vertical-align:baseline;
+  margin-left:6px;
+  animation:blink 1.1s steps(1) infinite;
+}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.wordmark .cursor{animation:none}}
+.boot{
+  margin-top:20px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.82rem;
+  color:var(--muted);
+}
+.boot div{padding:2px 0}
+.boot .ok{color:var(--cobalt)}
+nav.filters{
+  display:flex;flex-wrap:wrap;gap:8px;
+  padding:20px 0 8px;
+  border-top:1px solid var(--rule);
+}
+.filters button{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.75rem;
+  letter-spacing:0.04em;
+  background:none;border:1px solid var(--rule);
+  color:var(--muted);
+  padding:5px 12px;border-radius:999px;
+  cursor:pointer;
+  transition:all .15s;
+}
+.filters button:hover{border-color:var(--cobalt);color:var(--cobalt)}
+.filters button.active{background:var(--cobalt);border-color:var(--cobalt);color:#fff}
+.filters button:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
+main{padding:16px 0 80px}
+.month{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.72rem;letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:36px 0 10px;
+}
+.entry{
+  display:block;
+  text-decoration:none;color:inherit;
+  padding:16px 0;
+  border-bottom:1px solid var(--rule);
+}
+.entry .meta{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.75rem;
+  color:var(--muted);
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:6px;
+}
+.entry .tag{
+  background:var(--chip);
+  color:var(--cobalt);
+  padding:1px 8px;border-radius:4px;
+  font-weight:500;
+}
+.entry h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:500;
+  font-size:1.25rem;
+  letter-spacing:-0.01em;
+  transition:color .15s;
+}
+.entry:hover h2{color:var(--cobalt)}
+.entry p{
+  color:var(--muted);
+  font-size:0.92rem;
+  margin-top:4px;
+}
+.empty{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.85rem;color:var(--muted);
+  padding:40px 0;display:none;
+}
+footer{
+  border-top:1px solid var(--rule);
+  padding:28px 0 56px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.78rem;color:var(--muted);
+  display:flex;gap:20px;flex-wrap:wrap;
+}
+footer a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+footer a:hover{color:var(--cobalt);border-color:var(--cobalt)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="wordmark">vibelogs<span class="cursor" aria-hidden="true"></span></div>
+  <div class="boot" aria-label="site intro">
+    <div>[boot] hands-on walkthroughs of AI tools, agents, and workflows</div>
+    <div>[user] rahul — data science @ pinterest, nyc</div>
+    <div class="ok">[ok]&nbsp;&nbsp; learning in public. logs below.</div>
+  </div>
+</header>
+
+<nav class="filters" aria-label="Filter posts by tag">
+  <button class="active" data-tag="all">ALL</button>
+  <button data-tag="agents">AGENTS</button>
+  <button data-tag="tooling">TOOLING</button>
+  <button data-tag="llm-apps">LLM-APPS</button>
+  <button data-tag="data-science">DATA-SCIENCE</button>
+</nav>
+
+<main>
+  <div class="month">2026 · July</div>
+
+  <a class="entry" data-tags="tooling" href="posts/2026-07-16-hello-vibelogs/">
+    <div class="meta"><span>[2026-07-16]</span><span class="tag">TOOLING</span></div>
+    <h2>Hello, vibelogs: how this site is built</h2>
+    <p>Zero-framework GitHub Pages setup, the log-entry format, and how new posts get added.</p>
+  </a>
+
+  <div class="empty">[warn] no entries match this filter</div>
+</main>
+
+<footer>
+  <a href="about.html">about</a>
+  <a href="https://github.com/vibedatascience">github</a>
+</footer>
+</div>
+
+<script>
+const buttons=document.querySelectorAll('.filters button');
+const entries=document.querySelectorAll('.entry');
+const months=document.querySelectorAll('.month');
+const empty=document.querySelector('.empty');
+buttons.forEach(b=>b.addEventListener('click',()=>{
+  buttons.forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const tag=b.dataset.tag;
+  let shown=0;
+  entries.forEach(e=>{
+    const show=tag==='all'||e.dataset.tags.split(' ').includes(tag);
+    e.style.display=show?'block':'none';
+    if(show)shown++;
+  });
+  months.forEach(m=>{
+    let el=m.nextElementSibling,any=false;
+    while(el&&!el.classList.contains('month')){
+      if(el.classList.contains('entry')&&el.style.display!=='none')any=true;
+      el=el.nextElementSibling;
+    }
+    m.style.display=any?'block':'none';
+  });
+  empty.style.display=shown?'none':'block';
+}));
+</script>
+</body>
+</html>
