@@ -93,13 +93,6 @@ rows = [{"name": r["country"]["value"], "pop": r["value"],
 }</code></pre>
 <p>Each tile carries three text lines: the country name, the population, then share and rank. Each line has its own visibility threshold based on on-screen height, so tiles gain detail progressively as you zoom instead of all at once. Stroke widths are divided by k too, otherwise borders turn into walls at 100x.</p>
 
-<h2>Mode switching</h2>
-<p>Both layouts, flat and grouped by region, are computed once up front and indexed by ISO code. Switching modes is just a 700ms transition of each tile to its position in the other layout. Nothing gets recomputed on toggle.</p>
-
-<div class="gotcha"><strong>GOTCHA · SIZING</strong><br>
-The first version computed the treemap size from <code>container.clientWidth</code> at script time and rendered completely blank inside an iframe, because the container measured zero before layout. Fixed coordinates plus an SVG viewBox avoid runtime measurement entirely and the browser handles scaling.</div>
-
-<p>The pattern generalizes to anything with a name and one number where the ratios are extreme: every earthquake this year by energy released, every word in English by frequency, every crypto token by market cap. The zoom is only worth building when the biggest tile is 100,000x the smallest.</p>
 </article>
 
 <footer><a href="../../">← back to all logs</a></footer>
