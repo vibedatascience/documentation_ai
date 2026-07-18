@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Rahul">
+<title>A zoomable treemap canvas for world population | vibelogs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FAFAF8;--ink:#17171C;--cobalt:#2545FF;--muted:#6E6E76;--rule:#E7E7E2;--chip:#EEF1FF}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.7}
+.wrap{max-width:680px;margin:0 auto;padding:0 24px}
+.top{padding:40px 0 0;font-family:'IBM Plex Mono',monospace;font-size:0.8rem}
+.top a{color:var(--muted);text-decoration:none}
+.top a:hover{color:var(--cobalt)}
+header.post{padding:32px 0 24px;border-bottom:1px solid var(--rule)}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted);display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.upd{color:var(--muted)}
+.tag{background:var(--chip);color:var(--cobalt);padding:1px 8px;border-radius:4px;font-weight:500}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);letter-spacing:-0.02em;line-height:1.2}
+article{padding:32px 0 60px}
+article h2{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:1.3rem;margin:36px 0 12px}
+article p{margin:0 0 18px}
+article ol,article ul{margin:0 0 18px 22px}
+article li{margin-bottom:8px}
+article a{color:var(--cobalt)}
+pre{background:#111116;color:#E8E8EE;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;line-height:1.55;padding:16px 18px;border-radius:8px;overflow-x:auto;margin:0 0 18px}
+code{font-family:'IBM Plex Mono',monospace;font-size:0.86em;background:var(--chip);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:0.9rem}
+th,td{border:1px solid var(--rule);padding:8px 12px;text-align:left;vertical-align:top}
+th{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff}
+.gotcha{border-left:3px solid var(--cobalt);padding:12px 16px;background:#fff;margin:0 0 18px}
+.gotcha strong{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;letter-spacing:0.08em;color:var(--cobalt)}
+.viz{margin:0 0 18px}
+.viz iframe{width:100%;height:640px;border:1px solid var(--rule);border-radius:8px;background:#fff}
+.viz .open{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;margin-top:8px}
+footer{border-top:1px solid var(--rule);padding:24px 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted)}
+footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../../">← vibelogs</a></div>
+
+<header class="post">
+  <div class="meta"><span>[2026-07-18]</span><span>Rahul</span><span class="upd">updated 2026-07-18</span><span class="tag">DATA-SCIENCE</span></div>
+  <h1>A zoomable treemap canvas for world population</h1>
+</header>
+
+<article>
+<p>I saw a treemap of online attention where the top sites are labeled and the long tail is a field of confetti. I wanted the same idea as an infinite canvas: one flat map you can scroll into anywhere, with labels that appear as tiles get big enough to hold them. This one shows the 2024 population of every country, all 217 of them, 8.12B people.</p>
+
+<div class="viz">
+<iframe src="population.html" title="World population treemap canvas" loading="lazy"></iframe>
+<div class="open"><a href="population.html">open full screen →</a></div>
+</div>
+
+<p>Scroll to zoom, drag to pan, double-click a tile to fly to it. The toggle switches between flat colors, coloring by World Bank region, and a full regrouped layout with region blocks. India and China each hold about 18% of the map. Tuvalu is 9,646 people in the corner.</p>
+
+<h2>Data</h2>
+<p>Everything comes from the World Bank API, no key required. One call for the populations and one for country metadata to drop the aggregate rows like "Africa Eastern and Southern" that the indicator endpoint mixes in with real countries.</p>
+<pre><code>import urllib.request, json
+
+meta = json.load(urllib.request.urlopen(
+    "https://api.worldbank.org/v2/country?format=json&amp;per_page=400"))[1]
+real = {c["id"]: c["region"]["value"] for c in meta
+        if c["region"]["value"] != "Aggregates"}
+
+pop = json.load(urllib.request.urlopen(
+    "https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL"
+    "?format=json&amp;per_page=400&amp;date=2024"))[1]
+rows = [{"name": r["country"]["value"], "pop": r["value"],
+         "region": real[r["countryiso3code"]]}
+        for r in pop if r["countryiso3code"] in real and r["value"]]</code></pre>
+<p>The rows get embedded straight into the HTML as a JSON literal, so the page works offline and there is no fetch at load time.</p>
+
+<h2>The canvas</h2>
+<p>The layout is a single d3.treemap in a fixed 1400x950 coordinate space. d3.zoom applies a transform to one group element, scale extent 0.8 to 300. That range matters here because the sizes span five orders of magnitude, from 1.45B down to under 10K.</p>
+<p>The trick that makes it feel like a canvas is counter-scaled text. Tile geometry scales with the zoom transform but label font sizes are divided by the zoom factor k, so text stays a constant size on screen while more of it becomes visible.</p>
+<pre><code>function updateLabels() {
+  leaves.each(function(d) {
+    const w = (d.x1 - d.x0) * k;   // on-screen width
+    const h = (d.y1 - d.y0) * k;
+    let px = Math.min(26, Math.max(11, Math.sqrt(w * h) / 7));
+    const show = px &gt;= 9 &amp;&amp; h &gt; px * 1.7 &amp;&amp; w &gt; 34;
+    d3.select(this).select("text")
+      .style("display", show ? null : "none")
+      .style("font-size", (px / k) + "px");  // counter-scale
+  });
+}</code></pre>
+<p>Each tile carries three text lines: the country name, the population, then share and rank. Each line has its own visibility threshold based on on-screen height, so tiles gain detail progressively as you zoom instead of all at once. Stroke widths are divided by k too, otherwise borders turn into walls at 100x.</p>
+
+<h2>Mode switching</h2>
+<p>Both layouts, flat and grouped by region, are computed once up front and indexed by ISO code. Switching modes is just a 700ms transition of each tile to its position in the other layout. Nothing gets recomputed on toggle.</p>
+
+<div class="gotcha"><strong>GOTCHA · SIZING</strong><br>
+The first version computed the treemap size from <code>container.clientWidth</code> at script time and rendered completely blank inside an iframe, because the container measured zero before layout. Fixed coordinates plus an SVG viewBox avoid runtime measurement entirely and the browser handles scaling.</div>
+
+<p>The pattern generalizes to anything with a name and one number where the ratios are extreme: every earthquake this year by energy released, every word in English by frequency, every crypto token by market cap. The zoom is only worth building when the biggest tile is 100,000x the smallest.</p>
+</article>
+
+<footer><a href="../../">← back to all logs</a></footer>
+</div>
+</body>
+</html>

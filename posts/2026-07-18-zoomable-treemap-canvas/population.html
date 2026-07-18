@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>population://world</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#14161c; --dim:#6b7280; --line:#e5e7eb; --cobalt:#2545FF; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font-family:"Space Grotesk",sans-serif; overflow:hidden; }
+  #topbar { display:flex; align-items:center; gap:14px; padding:12px 20px 8px; flex-wrap:wrap; }
+  #topbar h1 { font-size:19px; font-weight:700; margin:0; letter-spacing:-0.01em; }
+  #topbar .sub { font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--dim); }
+  #modes { display:flex; gap:0; border:1px solid var(--line); border-radius:6px; overflow:hidden; margin-left:auto; }
+  #modes button {
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; border:none; background:#fafafa;
+    padding:6px 12px; cursor:pointer; color:var(--dim); border-right:1px solid var(--line);
+  }
+  #modes button:last-child { border-right:none; }
+  #modes button.on { background:#2545FF; color:#fff; }
+  #topbar .zlevel { font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--dim); }
+  #reset {
+    font-family:"IBM Plex Mono",monospace; font-size:12px; border:1px solid var(--line);
+    background:#fafafa; border-radius:5px; padding:5px 12px; cursor:pointer; color:var(--cobalt);
+  }
+  #reset:hover { background:#f0f2ff; }
+  #legend { display:flex; gap:14px; flex-wrap:wrap; padding:0 20px 8px; font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink); }
+  #legend .lg { display:flex; align-items:center; gap:5px; }
+  #legend .sw { width:11px; height:11px; border-radius:2px; }
+  #stage { width:100%; height:calc(100vh - 84px); min-height:480px; cursor:grab; }
+  #stage.grabbing { cursor:grabbing; }
+  svg { display:block; width:100%; height:100%; }
+  .leaf rect { stroke:#fff; }
+  .region-frame { fill:none; stroke:#fff; pointer-events:none; }
+  text { pointer-events:none; fill:#14161c; }
+  .t-name { font-family:"Space Grotesk",sans-serif; }
+  .t-val, .t-meta { font-family:"IBM Plex Mono",monospace; }
+  .t-val { opacity:0.75; } .t-meta { opacity:0.55; }
+  .region-label { font-family:"IBM Plex Mono",monospace; font-weight:600; opacity:0.85; }
+  .tt {
+    position:fixed; pointer-events:none; z-index:10; display:none;
+    background:#14161c; color:#f3f4f6; padding:11px 14px; border-radius:8px;
+    font-family:"IBM Plex Mono",monospace; font-size:12.5px; line-height:1.7;
+    max-width:320px; box-shadow:0 8px 24px rgba(0,0,0,0.25);
+  }
+  .tt b { font-family:"Space Grotesk",sans-serif; font-size:15px; }
+  .tt .k { color:#9ca3af; }
+</style>
+</head>
+<body>
+<div id="topbar">
+  <h1>World population, every country</h1>
+  <span class="sub">world bank 2024 &middot; 217 countries &middot; 8.12B</span>
+  <div id="modes">
+    <button data-mode="flat">flat colors</button>
+    <button data-mode="regioncolor" class="on">color by region</button>
+    <button data-mode="grouped">group by region</button>
+  </div>
+  <span class="zlevel" id="zlevel">zoom 1.0x</span>
+  <button id="reset">reset view</button>
+</div>
+<div id="legend"></div>
+<div id="stage"><svg id="svg"></svg></div>
+<div class="tt" id="tt"></div>
+<script>
+const items = [{"name": "India", "iso": "IND", "pop": 1450935791, "region": "South Asia", "rank": 1, "share": 17.8742}, {"name": "China", "iso": "CHN", "pop": 1408975000, "region": "East Asia & Pacific", "rank": 2, "share": 17.3573}, {"name": "United States", "iso": "USA", "pop": 340003797, "region": "North America", "rank": 3, "share": 4.1885}, {"name": "Indonesia", "iso": "IDN", "pop": 283487931, "region": "East Asia & Pacific", "rank": 4, "share": 3.4923}, {"name": "Pakistan", "iso": "PAK", "pop": 251269164, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 5, "share": 3.0954}, {"name": "Nigeria", "iso": "NGA", "pop": 232679478, "region": "Sub-Saharan Africa", "rank": 6, "share": 2.8664}, {"name": "Brazil", "iso": "BRA", "pop": 211998573, "region": "Latin America & Caribbean", "rank": 7, "share": 2.6116}, {"name": "Bangladesh", "iso": "BGD", "pop": 173562364, "region": "South Asia", "rank": 8, "share": 2.1381}, {"name": "Russian Federation", "iso": "RUS", "pop": 143669648, "region": "Europe & Central Asia", "rank": 9, "share": 1.7699}, {"name": "Ethiopia", "iso": "ETH", "pop": 132059767, "region": "Sub-Saharan Africa", "rank": 10, "share": 1.6269}, {"name": "Mexico", "iso": "MEX", "pop": 130861007, "region": "Latin America & Caribbean", "rank": 11, "share": 1.6121}, {"name": "Japan", "iso": "JPN", "pop": 123975371, "region": "East Asia & Pacific", "rank": 12, "share": 1.5273}, {"name": "Egypt, Arab Rep.", "iso": "EGY", "pop": 116538258, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 13, "share": 1.4356}, {"name": "Philippines", "iso": "PHL", "pop": 115843670, "region": "East Asia & Pacific", "rank": 14, "share": 1.4271}, {"name": "Congo, Dem. Rep.", "iso": "COD", "pop": 109276265, "region": "Sub-Saharan Africa", "rank": 15, "share": 1.3462}, {"name": "Viet Nam", "iso": "VNM", "pop": 100987686, "region": "East Asia & Pacific", "rank": 16, "share": 1.2441}, {"name": "Iran, Islamic Rep.", "iso": "IRN", "pop": 91567738, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 17, "share": 1.128}, {"name": "Turkiye", "iso": "TUR", "pop": 85518661, "region": "Europe & Central Asia", "rank": 18, "share": 1.0535}, {"name": "Germany", "iso": "DEU", "pop": 83516593, "region": "Europe & Central Asia", "rank": 19, "share": 1.0288}, {"name": "Thailand", "iso": "THA", "pop": 71668011, "region": "East Asia & Pacific", "rank": 20, "share": 0.8829}, {"name": "United Kingdom", "iso": "GBR", "pop": 69281000, "region": "Europe & Central Asia", "rank": 21, "share": 0.8535}, {"name": "Tanzania", "iso": "TZA", "pop": 68560157, "region": "Sub-Saharan Africa", "rank": 22, "share": 0.8446}, {"name": "France", "iso": "FRA", "pop": 68551653, "region": "Europe & Central Asia", "rank": 23, "share": 0.8445}, {"name": "South Africa", "iso": "ZAF", "pop": 64007187, "region": "Sub-Saharan Africa", "rank": 24, "share": 0.7885}, {"name": "Italy", "iso": "ITA", "pop": 58952704, "region": "Europe & Central Asia", "rank": 25, "share": 0.7262}, {"name": "Kenya", "iso": "KEN", "pop": 56432944, "region": "Sub-Saharan Africa", "rank": 26, "share": 0.6952}, {"name": "Myanmar", "iso": "MMR", "pop": 54500091, "region": "East Asia & Pacific", "rank": 27, "share": 0.6714}, {"name": "Colombia", "iso": "COL", "pop": 52886363, "region": "Latin America & Caribbean", "rank": 28, "share": 0.6515}, {"name": "Korea, Rep.", "iso": "KOR", "pop": 51751065, "region": "East Asia & Pacific", "rank": 29, "share": 0.6375}, {"name": "Sudan", "iso": "SDN", "pop": 50448963, "region": "Sub-Saharan Africa", "rank": 30, "share": 0.6215}, {"name": "Uganda", "iso": "UGA", "pop": 50015092, "region": "Sub-Saharan Africa", "rank": 31, "share": 0.6161}, {"name": "Spain", "iso": "ESP", "pop": 48848840, "region": "Europe & Central Asia", "rank": 32, "share": 0.6018}, {"name": "Algeria", "iso": "DZA", "pop": 46814308, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 33, "share": 0.5767}, {"name": "Iraq", "iso": "IRQ", "pop": 46042015, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 34, "share": 0.5672}, {"name": "Argentina", "iso": "ARG", "pop": 45696159, "region": "Latin America & Caribbean", "rank": 35, "share": 0.5629}, {"name": "Afghanistan", "iso": "AFG", "pop": 42647492, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 36, "share": 0.5254}, {"name": "Canada", "iso": "CAN", "pop": 41262329, "region": "North America", "rank": 37, "share": 0.5083}, {"name": "Yemen, Rep.", "iso": "YEM", "pop": 40583164, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 38, "share": 0.4999}, {"name": "Morocco", "iso": "MAR", "pop": 38081173, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 39, "share": 0.4691}, {"name": "Angola", "iso": "AGO", "pop": 37885849, "region": "Sub-Saharan Africa", "rank": 40, "share": 0.4667}, {"name": "Ukraine", "iso": "UKR", "pop": 37860221, "region": "Europe & Central Asia", "rank": 41, "share": 0.4664}, {"name": "Poland", "iso": "POL", "pop": 36559233, "region": "Europe & Central Asia", "rank": 42, "share": 0.4504}, {"name": "Uzbekistan", "iso": "UZB", "pop": 36361859, "region": "Europe & Central Asia", "rank": 43, "share": 0.4479}, {"name": "Malaysia", "iso": "MYS", "pop": 35557673, "region": "East Asia & Pacific", "rank": 44, "share": 0.438}, {"name": "Saudi Arabia", "iso": "SAU", "pop": 35300280, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 45, "share": 0.4349}, {"name": "Mozambique", "iso": "MOZ", "pop": 34631766, "region": "Sub-Saharan Africa", "rank": 46, "share": 0.4266}, {"name": "Ghana", "iso": "GHA", "pop": 34427414, "region": "Sub-Saharan Africa", "rank": 47, "share": 0.4241}, {"name": "Peru", "iso": "PER", "pop": 34217848, "region": "Latin America & Caribbean", "rank": 48, "share": 0.4215}, {"name": "Madagascar", "iso": "MDG", "pop": 31964956, "region": "Sub-Saharan Africa", "rank": 49, "share": 0.3938}, {"name": "Cote d'Ivoire", "iso": "CIV", "pop": 31934230, "region": "Sub-Saharan Africa", "rank": 50, "share": 0.3934}, {"name": "Nepal", "iso": "NPL", "pop": 29651054, "region": "South Asia", "rank": 51, "share": 0.3653}, {"name": "Cameroon", "iso": "CMR", "pop": 29123744, "region": "Sub-Saharan Africa", "rank": 52, "share": 0.3588}, {"name": "Venezuela, RB", "iso": "VEN", "pop": 28405543, "region": "Latin America & Caribbean", "rank": 53, "share": 0.3499}, {"name": "Australia", "iso": "AUS", "pop": 27194286, "region": "East Asia & Pacific", "rank": 54, "share": 0.335}, {"name": "Niger", "iso": "NER", "pop": 27032412, "region": "Sub-Saharan Africa", "rank": 55, "share": 0.333}, {"name": "Korea, Dem. People's Rep.", "iso": "PRK", "pop": 26498823, "region": "East Asia & Pacific", "rank": 56, "share": 0.3264}, {"name": "Syrian Arab Republic", "iso": "SYR", "pop": 24672760, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 57, "share": 0.3039}, {"name": "Mali", "iso": "MLI", "pop": 24478595, "region": "Sub-Saharan Africa", "rank": 58, "share": 0.3016}, {"name": "Burkina Faso", "iso": "BFA", "pop": 23548781, "region": "Sub-Saharan Africa", "rank": 59, "share": 0.2901}, {"name": "Sri Lanka", "iso": "LKA", "pop": 21916000, "region": "South Asia", "rank": 60, "share": 0.27}, {"name": "Malawi", "iso": "MWI", "pop": 21655286, "region": "Sub-Saharan Africa", "rank": 61, "share": 0.2668}, {"name": "Zambia", "iso": "ZMB", "pop": 21314956, "region": "Sub-Saharan Africa", "rank": 62, "share": 0.2626}, {"name": "Kazakhstan", "iso": "KAZ", "pop": 20592571, "region": "Europe & Central Asia", "rank": 63, "share": 0.2537}, {"name": "Chad", "iso": "TCD", "pop": 20299123, "region": "Sub-Saharan Africa", "rank": 64, "share": 0.2501}, {"name": "Chile", "iso": "CHL", "pop": 19764771, "region": "Latin America & Caribbean", "rank": 65, "share": 0.2435}, {"name": "Romania", "iso": "ROU", "pop": 19051804, "region": "Europe & Central Asia", "rank": 66, "share": 0.2347}, {"name": "Somalia, Fed. Rep.", "iso": "SOM", "pop": 19009151, "region": "Sub-Saharan Africa", "rank": 67, "share": 0.2342}, {"name": "Senegal", "iso": "SEN", "pop": 18501984, "region": "Sub-Saharan Africa", "rank": 68, "share": 0.2279}, {"name": "Guatemala", "iso": "GTM", "pop": 18406359, "region": "Latin America & Caribbean", "rank": 69, "share": 0.2267}, {"name": "Ecuador", "iso": "ECU", "pop": 18135478, "region": "Latin America & Caribbean", "rank": 70, "share": 0.2234}, {"name": "Netherlands", "iso": "NLD", "pop": 17993485, "region": "Europe & Central Asia", "rank": 71, "share": 0.2217}, {"name": "Cambodia", "iso": "KHM", "pop": 17638801, "region": "East Asia & Pacific", "rank": 72, "share": 0.2173}, {"name": "Zimbabwe", "iso": "ZWE", "pop": 16634373, "region": "Sub-Saharan Africa", "rank": 73, "share": 0.2049}, {"name": "Guinea", "iso": "GIN", "pop": 14754785, "region": "Sub-Saharan Africa", "rank": 74, "share": 0.1818}, {"name": "Benin", "iso": "BEN", "pop": 14462724, "region": "Sub-Saharan Africa", "rank": 75, "share": 0.1782}, {"name": "Rwanda", "iso": "RWA", "pop": 14256567, "region": "Sub-Saharan Africa", "rank": 76, "share": 0.1756}, {"name": "Burundi", "iso": "BDI", "pop": 14047786, "region": "Sub-Saharan Africa", "rank": 77, "share": 0.1731}, {"name": "Bolivia", "iso": "BOL", "pop": 12413315, "region": "Latin America & Caribbean", "rank": 78, "share": 0.1529}, {"name": "Tunisia", "iso": "TUN", "pop": 12277109, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 79, "share": 0.1512}, {"name": "South Sudan", "iso": "SSD", "pop": 11943408, "region": "Sub-Saharan Africa", "rank": 80, "share": 0.1471}, {"name": "Belgium", "iso": "BEL", "pop": 11858610, "region": "Europe & Central Asia", "rank": 81, "share": 0.1461}, {"name": "Haiti", "iso": "HTI", "pop": 11772557, "region": "Latin America & Caribbean", "rank": 82, "share": 0.145}, {"name": "Jordan", "iso": "JOR", "pop": 11552876, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 83, "share": 0.1423}, {"name": "Dominican Republic", "iso": "DOM", "pop": 11427557, "region": "Latin America & Caribbean", "rank": 84, "share": 0.1408}, {"name": "United Arab Emirates", "iso": "ARE", "pop": 10986400, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 85, "share": 0.1353}, {"name": "Cuba", "iso": "CUB", "pop": 10979783, "region": "Latin America & Caribbean", "rank": 86, "share": 0.1353}, {"name": "Czechia", "iso": "CZE", "pop": 10905028, "region": "Europe & Central Asia", "rank": 87, "share": 0.1343}, {"name": "Honduras", "iso": "HND", "pop": 10825703, "region": "Latin America & Caribbean", "rank": 88, "share": 0.1334}, {"name": "Portugal", "iso": "PRT", "pop": 10694681, "region": "Europe & Central Asia", "rank": 89, "share": 0.1317}, {"name": "Tajikistan", "iso": "TJK", "pop": 10590927, "region": "Europe & Central Asia", "rank": 90, "share": 0.1305}, {"name": "Papua New Guinea", "iso": "PNG", "pop": 10576502, "region": "East Asia & Pacific", "rank": 91, "share": 0.1303}, {"name": "Sweden", "iso": "SWE", "pop": 10569709, "region": "Europe & Central Asia", "rank": 92, "share": 0.1302}, {"name": "Greece", "iso": "GRC", "pop": 10405134, "region": "Europe & Central Asia", "rank": 93, "share": 0.1282}, {"name": "Azerbaijan", "iso": "AZE", "pop": 10202830, "region": "Europe & Central Asia", "rank": 94, "share": 0.1257}, {"name": "Israel", "iso": "ISR", "pop": 10002200, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 95, "share": 0.1232}, {"name": "Hungary", "iso": "HUN", "pop": 9562065, "region": "Europe & Central Asia", "rank": 96, "share": 0.1178}, {"name": "Austria", "iso": "AUT", "pop": 9177982, "region": "Europe & Central Asia", "rank": 97, "share": 0.1131}, {"name": "Belarus", "iso": "BLR", "pop": 9132629, "region": "Europe & Central Asia", "rank": 98, "share": 0.1125}, {"name": "Switzerland", "iso": "CHE", "pop": 9005582, "region": "Europe & Central Asia", "rank": 99, "share": 0.1109}, {"name": "Sierra Leone", "iso": "SLE", "pop": 8642022, "region": "Sub-Saharan Africa", "rank": 100, "share": 0.1065}, {"name": "Togo", "iso": "TGO", "pop": 8406558, "region": "Sub-Saharan Africa", "rank": 101, "share": 0.1036}, {"name": "Lao PDR", "iso": "LAO", "pop": 7769819, "region": "East Asia & Pacific", "rank": 102, "share": 0.0957}, {"name": "Hong Kong SAR, China", "iso": "HKG", "pop": 7524100, "region": "East Asia & Pacific", "rank": 103, "share": 0.0927}, {"name": "Turkmenistan", "iso": "TKM", "pop": 7494498, "region": "Europe & Central Asia", "rank": 104, "share": 0.0923}, {"name": "Libya", "iso": "LBY", "pop": 7381023, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 105, "share": 0.0909}, {"name": "Kyrgyz Republic", "iso": "KGZ", "pop": 7221868, "region": "Europe & Central Asia", "rank": 106, "share": 0.089}, {"name": "Paraguay", "iso": "PRY", "pop": 6929153, "region": "Latin America & Caribbean", "rank": 107, "share": 0.0854}, {"name": "Nicaragua", "iso": "NIC", "pop": 6916140, "region": "Latin America & Caribbean", "rank": 108, "share": 0.0852}, {"name": "Serbia", "iso": "SRB", "pop": 6586476, "region": "Europe & Central Asia", "rank": 109, "share": 0.0811}, {"name": "Bulgaria", "iso": "BGR", "pop": 6441421, "region": "Europe & Central Asia", "rank": 110, "share": 0.0794}, {"name": "El Salvador", "iso": "SLV", "pop": 6338193, "region": "Latin America & Caribbean", "rank": 111, "share": 0.0781}, {"name": "Congo, Rep.", "iso": "COG", "pop": 6332961, "region": "Sub-Saharan Africa", "rank": 112, "share": 0.078}, {"name": "Singapore", "iso": "SGP", "pop": 6036860, "region": "East Asia & Pacific", "rank": 113, "share": 0.0744}, {"name": "Denmark", "iso": "DNK", "pop": 5976992, "region": "Europe & Central Asia", "rank": 114, "share": 0.0736}, {"name": "Lebanon", "iso": "LBN", "pop": 5805962, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 115, "share": 0.0715}, {"name": "Finland", "iso": "FIN", "pop": 5619911, "region": "Europe & Central Asia", "rank": 116, "share": 0.0692}, {"name": "Liberia", "iso": "LBR", "pop": 5612817, "region": "Sub-Saharan Africa", "rank": 117, "share": 0.0691}, {"name": "Norway", "iso": "NOR", "pop": 5572279, "region": "Europe & Central Asia", "rank": 118, "share": 0.0686}, {"name": "Slovak Republic", "iso": "SVK", "pop": 5422069, "region": "Europe & Central Asia", "rank": 119, "share": 0.0668}, {"name": "Ireland", "iso": "IRL", "pop": 5395790, "region": "Europe & Central Asia", "rank": 120, "share": 0.0665}, {"name": "Central African Republic", "iso": "CAF", "pop": 5330690, "region": "Sub-Saharan Africa", "rank": 121, "share": 0.0657}, {"name": "New Zealand", "iso": "NZL", "pop": 5290000, "region": "East Asia & Pacific", "rank": 122, "share": 0.0652}, {"name": "West Bank and Gaza", "iso": "PSE", "pop": 5289152, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 123, "share": 0.0652}, {"name": "Oman", "iso": "OMN", "pop": 5281538, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 124, "share": 0.0651}, {"name": "Mauritania", "iso": "MRT", "pop": 5169395, "region": "Sub-Saharan Africa", "rank": 125, "share": 0.0637}, {"name": "Costa Rica", "iso": "CRI", "pop": 5129910, "region": "Latin America & Caribbean", "rank": 126, "share": 0.0632}, {"name": "Kuwait", "iso": "KWT", "pop": 4897263, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 127, "share": 0.0603}, {"name": "Panama", "iso": "PAN", "pop": 4515577, "region": "Latin America & Caribbean", "rank": 128, "share": 0.0556}, {"name": "Croatia", "iso": "HRV", "pop": 3866200, "region": "Europe & Central Asia", "rank": 129, "share": 0.0476}, {"name": "Georgia", "iso": "GEO", "pop": 3812518, "region": "Europe & Central Asia", "rank": 130, "share": 0.047}, {"name": "Eritrea", "iso": "ERI", "pop": 3535603, "region": "Sub-Saharan Africa", "rank": 131, "share": 0.0436}, {"name": "Mongolia", "iso": "MNG", "pop": 3524788, "region": "East Asia & Pacific", "rank": 132, "share": 0.0434}, {"name": "Uruguay", "iso": "URY", "pop": 3386588, "region": "Latin America & Caribbean", "rank": 133, "share": 0.0417}, {"name": "Puerto Rico (US)", "iso": "PRI", "pop": 3202521, "region": "Latin America & Caribbean", "rank": 134, "share": 0.0395}, {"name": "Bosnia and Herzegovina", "iso": "BIH", "pop": 3164253, "region": "Europe & Central Asia", "rank": 135, "share": 0.039}, {"name": "Armenia", "iso": "ARM", "pop": 3033500, "region": "Europe & Central Asia", "rank": 136, "share": 0.0374}, {"name": "Namibia", "iso": "NAM", "pop": 3030131, "region": "Sub-Saharan Africa", "rank": 137, "share": 0.0373}, {"name": "Lithuania", "iso": "LTU", "pop": 2888278, "region": "Europe & Central Asia", "rank": 138, "share": 0.0356}, {"name": "Qatar", "iso": "QAT", "pop": 2857822, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 139, "share": 0.0352}, {"name": "Jamaica", "iso": "JAM", "pop": 2839175, "region": "Latin America & Caribbean", "rank": 140, "share": 0.035}, {"name": "Gambia, The", "iso": "GMB", "pop": 2759988, "region": "Sub-Saharan Africa", "rank": 141, "share": 0.034}, {"name": "Gabon", "iso": "GAB", "pop": 2538952, "region": "Sub-Saharan Africa", "rank": 142, "share": 0.0313}, {"name": "Botswana", "iso": "BWA", "pop": 2521139, "region": "Sub-Saharan Africa", "rank": 143, "share": 0.0311}, {"name": "Moldova", "iso": "MDA", "pop": 2402306, "region": "Europe & Central Asia", "rank": 144, "share": 0.0296}, {"name": "Albania", "iso": "ALB", "pop": 2377128, "region": "Europe & Central Asia", "rank": 145, "share": 0.0293}, {"name": "Lesotho", "iso": "LSO", "pop": 2337423, "region": "Sub-Saharan Africa", "rank": 146, "share": 0.0288}, {"name": "Guinea-Bissau", "iso": "GNB", "pop": 2201352, "region": "Sub-Saharan Africa", "rank": 147, "share": 0.0271}, {"name": "Slovenia", "iso": "SVN", "pop": 2127400, "region": "Europe & Central Asia", "rank": 148, "share": 0.0262}, {"name": "Equatorial Guinea", "iso": "GNQ", "pop": 1892516, "region": "Sub-Saharan Africa", "rank": 149, "share": 0.0233}, {"name": "Latvia", "iso": "LVA", "pop": 1866124, "region": "Europe & Central Asia", "rank": 150, "share": 0.023}, {"name": "North Macedonia", "iso": "MKD", "pop": 1824359, "region": "Europe & Central Asia", "rank": 151, "share": 0.0225}, {"name": "Kosovo", "iso": "XKX", "pop": 1594353, "region": "Europe & Central Asia", "rank": 152, "share": 0.0196}, {"name": "Bahrain", "iso": "BHR", "pop": 1588670, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 153, "share": 0.0196}, {"name": "Timor-Leste", "iso": "TLS", "pop": 1400638, "region": "East Asia & Pacific", "rank": 154, "share": 0.0173}, {"name": "Estonia", "iso": "EST", "pop": 1372341, "region": "Europe & Central Asia", "rank": 155, "share": 0.0169}, {"name": "Trinidad and Tobago", "iso": "TTO", "pop": 1368333, "region": "Latin America & Caribbean", "rank": 156, "share": 0.0169}, {"name": "Cyprus", "iso": "CYP", "pop": 1358282, "region": "Europe & Central Asia", "rank": 157, "share": 0.0167}, {"name": "Mauritius", "iso": "MUS", "pop": 1245779, "region": "Sub-Saharan Africa", "rank": 158, "share": 0.0153}, {"name": "Eswatini", "iso": "SWZ", "pop": 1242822, "region": "Sub-Saharan Africa", "rank": 159, "share": 0.0153}, {"name": "Djibouti", "iso": "DJI", "pop": 1168722, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 160, "share": 0.0144}, {"name": "Fiji", "iso": "FJI", "pop": 928784, "region": "East Asia & Pacific", "rank": 161, "share": 0.0114}, {"name": "Comoros", "iso": "COM", "pop": 866628, "region": "Sub-Saharan Africa", "rank": 162, "share": 0.0107}, {"name": "Guyana", "iso": "GUY", "pop": 831087, "region": "Latin America & Caribbean", "rank": 163, "share": 0.0102}, {"name": "Solomon Islands", "iso": "SLB", "pop": 819198, "region": "East Asia & Pacific", "rank": 164, "share": 0.0101}, {"name": "Bhutan", "iso": "BTN", "pop": 791524, "region": "South Asia", "rank": 165, "share": 0.0098}, {"name": "Macao SAR, China", "iso": "MAC", "pop": 687000, "region": "East Asia & Pacific", "rank": 166, "share": 0.0085}, {"name": "Luxembourg", "iso": "LUX", "pop": 677012, "region": "Europe & Central Asia", "rank": 167, "share": 0.0083}, {"name": "Suriname", "iso": "SUR", "pop": 634431, "region": "Latin America & Caribbean", "rank": 168, "share": 0.0078}, {"name": "Montenegro", "iso": "MNE", "pop": 623525, "region": "Europe & Central Asia", "rank": 169, "share": 0.0077}, {"name": "Malta", "iso": "MLT", "pop": 568847, "region": "Middle East, North Africa, Afghanistan & Pakistan", "rank": 170, "share": 0.007}, {"name": "Maldives", "iso": "MDV", "pop": 527799, "region": "South Asia", "rank": 171, "share": 0.0065}, {"name": "Cabo Verde", "iso": "CPV", "pop": 524877, "region": "Sub-Saharan Africa", "rank": 172, "share": 0.0065}, {"name": "Brunei Darussalam", "iso": "BRN", "pop": 462721, "region": "East Asia & Pacific", "rank": 173, "share": 0.0057}, {"name": "Belize", "iso": "BLZ", "pop": 417072, "region": "Latin America & Caribbean", "rank": 174, "share": 0.0051}, {"name": "Bahamas, The", "iso": "BHS", "pop": 401283, "region": "Latin America & Caribbean", "rank": 175, "share": 0.0049}, {"name": "Iceland", "iso": "ISL", "pop": 386506, "region": "Europe & Central Asia", "rank": 176, "share": 0.0048}, {"name": "Vanuatu", "iso": "VUT", "pop": 327777, "region": "East Asia & Pacific", "rank": 177, "share": 0.004}, {"name": "New Caledonia", "iso": "NCL", "pop": 292639, "region": "East Asia & Pacific", "rank": 178, "share": 0.0036}, {"name": "Barbados", "iso": "BRB", "pop": 282467, "region": "Latin America & Caribbean", "rank": 179, "share": 0.0035}, {"name": "French Polynesia", "iso": "PYF", "pop": 281807, "region": "East Asia & Pacific", "rank": 180, "share": 0.0035}, {"name": "Sao Tome and Principe", "iso": "STP", "pop": 235536, "region": "Sub-Saharan Africa", "rank": 181, "share": 0.0029}, {"name": "Samoa", "iso": "WSM", "pop": 218019, "region": "East Asia & Pacific", "rank": 182, "share": 0.0027}, {"name": "St. Lucia", "iso": "LCA", "pop": 179744, "region": "Latin America & Caribbean", "rank": 183, "share": 0.0022}, {"name": "Channel Islands", "iso": "CHI", "pop": 168126, "region": "Europe & Central Asia", "rank": 184, "share": 0.0021}, {"name": "Guam", "iso": "GUM", "pop": 167777, "region": "East Asia & Pacific", "rank": 185, "share": 0.0021}, {"name": "Curacao", "iso": "CUW", "pop": 155967, "region": "Latin America & Caribbean", "rank": 186, "share": 0.0019}, {"name": "Kiribati", "iso": "KIR", "pop": 134518, "region": "East Asia & Pacific", "rank": 187, "share": 0.0017}, {"name": "Seychelles", "iso": "SYC", "pop": 121354, "region": "Sub-Saharan Africa", "rank": 188, "share": 0.0015}, {"name": "Grenada", "iso": "GRD", "pop": 117207, "region": "Latin America & Caribbean", "rank": 189, "share": 0.0014}, {"name": "Micronesia, Fed. Sts.", "iso": "FSM", "pop": 113160, "region": "East Asia & Pacific", "rank": 190, "share": 0.0014}, {"name": "Aruba", "iso": "ABW", "pop": 107995, "region": "Latin America & Caribbean", "rank": 191, "share": 0.0013}, {"name": "Virgin Islands (U.S.)", "iso": "VIR", "pop": 104377, "region": "Latin America & Caribbean", "rank": 192, "share": 0.0013}, {"name": "Tonga", "iso": "TON", "pop": 104175, "region": "East Asia & Pacific", "rank": 193, "share": 0.0013}, {"name": "St. Vincent and the Grenadines", "iso": "VCT", "pop": 100616, "region": "Latin America & Caribbean", "rank": 194, "share": 0.0012}, {"name": "Antigua and Barbuda", "iso": "ATG", "pop": 93772, "region": "Latin America & Caribbean", "rank": 195, "share": 0.0012}, {"name": "Isle of Man", "iso": "IMN", "pop": 84160, "region": "Europe & Central Asia", "rank": 196, "share": 0.001}, {"name": "Andorra", "iso": "AND", "pop": 81938, "region": "Europe & Central Asia", "rank": 197, "share": 0.001}, {"name": "Cayman Islands", "iso": "CYM", "pop": 74457, "region": "Latin America & Caribbean", "rank": 198, "share": 0.0009}, {"name": "Dominica", "iso": "DMA", "pop": 66205, "region": "Latin America & Caribbean", "rank": 199, "share": 0.0008}, {"name": "Bermuda", "iso": "BMU", "pop": 64636, "region": "North America", "rank": 200, "share": 0.0008}, {"name": "Greenland", "iso": "GRL", "pop": 56836, "region": "Europe & Central Asia", "rank": 201, "share": 0.0007}, {"name": "Faroe Islands", "iso": "FRO", "pop": 54640, "region": "Europe & Central Asia", "rank": 202, "share": 0.0007}, {"name": "St. Kitts and Nevis", "iso": "KNA", "pop": 46843, "region": "Latin America & Caribbean", "rank": 203, "share": 0.0006}, {"name": "American Samoa", "iso": "ASM", "pop": 46765, "region": "East Asia & Pacific", "rank": 204, "share": 0.0006}, {"name": "Turks and Caicos Islands", "iso": "TCA", "pop": 46535, "region": "Latin America & Caribbean", "rank": 205, "share": 0.0006}, {"name": "Northern Mariana Islands", "iso": "MNP", "pop": 44278, "region": "East Asia & Pacific", "rank": 206, "share": 0.0005}, {"name": "Sint Maarten (Dutch part)", "iso": "SXM", "pop": 43350, "region": "Latin America & Caribbean", "rank": 207, "share": 0.0005}, {"name": "Liechtenstein", "iso": "LIE", "pop": 40450, "region": "Europe & Central Asia", "rank": 208, "share": 0.0005}, {"name": "British Virgin Islands", "iso": "VGB", "pop": 39471, "region": "Latin America & Caribbean", "rank": 209, "share": 0.0005}, {"name": "Gibraltar", "iso": "GIB", "pop": 39329, "region": "Europe & Central Asia", "rank": 210, "share": 0.0005}, {"name": "Monaco", "iso": "MCO", "pop": 38631, "region": "Europe & Central Asia", "rank": 211, "share": 0.0005}, {"name": "Marshall Islands", "iso": "MHL", "pop": 37548, "region": "East Asia & Pacific", "rank": 212, "share": 0.0005}, {"name": "San Marino", "iso": "SMR", "pop": 33977, "region": "Europe & Central Asia", "rank": 213, "share": 0.0004}, {"name": "St. Martin (French part)", "iso": "MAF", "pop": 26129, "region": "Latin America & Caribbean", "rank": 214, "share": 0.0003}, {"name": "Palau", "iso": "PLW", "pop": 17695, "region": "East Asia & Pacific", "rank": 215, "share": 0.0002}, {"name": "Naoero", "iso": "NRU", "pop": 11947, "region": "East Asia & Pacific", "rank": 216, "share": 0.0001}, {"name": "Tuvalu", "iso": "TUV", "pop": 9646, "region": "East Asia & Pacific", "rank": 217, "share": 0.0001}];
+const total = d3.sum(items, d=>d.pop);
+
+const REGIONCOLORS = {
+  "South Asia":"#ee8b33",
+  "East Asia & Pacific":"#c9484f",
+  "Sub-Saharan Africa":"#5aa054",
+  "Europe & Central Asia":"#4e88bd",
+  "Latin America & Caribbean":"#9d7bc7",
+  "Middle East, North Africa, Afghanistan & Pakistan":"#e5c88f",
+  "Middle East & North Africa":"#e5c88f",
+  "North America":"#5fc9c4"
+};
+function regionColor(r){ return REGIONCOLORS[r] || "#8f8f8f"; }
+function shortRegion(r){
+  return r.replace("Middle East, North Africa, Afghanistan & Pakistan","MENA+")
+          .replace("Middle East & North Africa","MENA")
+          .replace("Latin America & Caribbean","Latin America & Carib.");
+}
+
+const PALETTE = ["#4e88bd","#e5c88f","#ee8b33","#b05454","#5aa054","#dd9aa2","#c9484f","#a86aa4",
+"#9d7bc7","#dda6d8","#8a5d52","#a3c4dd","#e07ec0","#ccdaee","#8f8f8f","#eb9a4d","#bdc94e","#ecd3a0",
+"#5fc9c4","#8fd694","#7b8fc7","#8b7bc7","#a7c46a","#d6a0dd","#7ba4c7","#c7b57b","#94b8dd","#7b8f5d"];
+const flatColor = {};
+items.forEach((d,i)=>flatColor[d.iso]=PALETTE[i%PALETTE.length]);
+
+const W = 1400, H = 930;
+let mode = "regioncolor";
+
+function computeLayout(grouped){
+  let hier;
+  if (grouped){
+    hier = d3.hierarchy({
+      name:"root",
+      children: Array.from(d3.group(items,d=>d.region),([reg,cs])=>({name:reg, children:cs}))
+    }).sum(d=>d.pop||0).sort((a,b)=>b.value-a.value);
+    d3.treemap().size([W,H]).paddingInner(1.5).paddingOuter(2).paddingTop(2)(hier);
+  } else {
+    hier = d3.hierarchy({name:"root", children: items})
+      .sum(d=>d.pop||0).sort((a,b)=>b.value-a.value);
+    d3.treemap().size([W,H]).paddingInner(1.5).paddingOuter(2)(hier);
+  }
+  return hier;
+}
+
+const layoutFlat = computeLayout(false);
+const layoutGrouped = computeLayout(true);
+const posFlat = {}, posGrouped = {};
+layoutFlat.leaves().forEach(d=>posFlat[d.data.iso]=d);
+layoutGrouped.leaves().forEach(d=>posGrouped[d.data.iso]=d);
+
+const stage = document.getElementById("stage");
+const svg = d3.select("#svg").attr("viewBox",`0 0 ${W} ${H}`);
+const g = svg.append("g");
+const tt = document.getElementById("tt");
+const zlevel = document.getElementById("zlevel");
+
+function fmtPop(p){
+  if (p>=1e9) return (p/1e9).toFixed(2)+"B";
+  if (p>=1e6) return (p/1e6).toFixed(1)+"M";
+  if (p>=1e3) return Math.round(p/1e3)+"K";
+  return p;
+}
+
+const leafG = g.selectAll("g.leaf").data(items, d=>d.iso).join("g")
+  .attr("class","leaf")
+  .on("mousemove",(ev,s)=>{
+    tt.style.display="block";
+    tt.style.left=Math.min(ev.clientX+14, window.innerWidth-340)+"px";
+    tt.style.top=(ev.clientY+14)+"px";
+    tt.innerHTML = `<b>${s.name}</b><br>`
+      + `<span class="k">population</span> ${s.pop.toLocaleString()}<br>`
+      + `<span class="k">share of world</span> ${s.share.toFixed(3)}%<br>`
+      + `<span class="k">rank</span> ${s.rank} of ${items.length}<br>`
+      + `<span class="k">region</span> ${s.region}<br>`
+      + `<span class="k">source</span> World Bank, 2024`;
+  })
+  .on("mouseleave",()=>{ tt.style.display="none"; })
+  .on("dblclick",(ev,s)=>{ ev.stopPropagation(); flyTo(nodeOf(s)); });
+
+leafG.append("rect").attr("rx",2);
+leafG.append("text").attr("class","t-name").text(d=>d.name);
+leafG.append("text").attr("class","t-val").text(d=>fmtPop(d.pop));
+leafG.append("text").attr("class","t-meta").text(d=>d.share.toFixed(3)+"% / rank "+d.rank);
+
+const regionG = g.append("g");
+
+function nodeOf(s){ return (mode==="grouped"?posGrouped:posFlat)[s.iso]; }
+
+function tileColor(s){
+  return mode==="flat" ? flatColor[s.iso] : regionColor(s.region);
+}
+
+let k = 1;
+function updateLabels(){
+  zlevel.textContent = "zoom "+k.toFixed(1)+"x";
+  leafG.each(function(s){
+    const d = nodeOf(s);
+    const w=(d.x1-d.x0)*k, h=(d.y1-d.y0)*k;
+    const sel=d3.select(this);
+    const label=s.name;
+    let px = Math.min(26, Math.max(11, Math.sqrt(w*h)/7));
+    const fits = w > label.length*px*0.56+12 && h > px*1.7;
+    if (!fits){ px = Math.max(9,(w-10)/(label.length*0.58)); }
+    const show = px>=9 && h>px*1.7 && w>34;
+    const fs = px/k;
+    const pad = 7/k;
+    sel.select(".t-name").style("display",show?null:"none")
+      .attr("x",pad).attr("y",pad+fs*0.9)
+      .style("font-size",fs+"px")
+      .style("font-weight", s.share>=1?"700":"500");
+    const line2 = show && h > px*3.1;
+    sel.select(".t-val").style("display",line2?null:"none")
+      .attr("x",pad).attr("y",pad+fs*0.9+fs*1.2)
+      .style("font-size",Math.max(8.5/k,fs*0.72)+"px");
+    const line3 = line2 && h > px*4.6 && w > 150;
+    sel.select(".t-meta").style("display",line3?null:"none")
+      .attr("x",pad).attr("y",pad+fs*0.9+fs*2.25)
+      .style("font-size",Math.max(8/k,fs*0.58)+"px");
+  });
+  leafG.select("rect").style("stroke-width",1.2/k).attr("rx",2/k);
+  regionG.selectAll(".region-frame").style("stroke-width",2.5/k);
+  regionG.selectAll(".region-label")
+    .style("font-size",13/k+"px")
+    .style("display", k<3.5 ? null : "none")
+    .attr("x",d=>d.x0+8/k).attr("y",d=>d.y0+15/k);
+}
+
+function applyMode(next){
+  mode = next;
+  document.querySelectorAll("#modes button").forEach(b=>b.classList.toggle("on", b.dataset.mode===mode));
+
+  const t = svg.transition().duration(700).ease(d3.easeCubicInOut);
+
+  leafG.transition(t)
+    .attr("transform", s=>{ const d=nodeOf(s); return `translate(${d.x0},${d.y0})`; });
+  leafG.select("rect").transition(t)
+    .attr("width", s=>{ const d=nodeOf(s); return Math.max(0,d.x1-d.x0); })
+    .attr("height", s=>{ const d=nodeOf(s); return Math.max(0,d.y1-d.y0); })
+    .attr("fill", tileColor);
+
+  const regions = mode==="grouped" ? layoutGrouped.children : [];
+  const rf = regionG.selectAll("g.rf").data(regions, d=>d.data.name);
+  const rfE = rf.enter().append("g").attr("class","rf").style("opacity",0);
+  rfE.append("rect").attr("class","region-frame");
+  rfE.append("text").attr("class","region-label");
+  const rfAll = rfE.merge(rf);
+  rfAll.transition(t).style("opacity",1);
+  rfAll.select(".region-frame")
+    .attr("x",d=>d.x0).attr("y",d=>d.y0)
+    .attr("width",d=>d.x1-d.x0).attr("height",d=>d.y1-d.y0);
+  rfAll.select(".region-label")
+    .text(d=>shortRegion(d.data.name).toUpperCase()+" "+(d.value/total*100).toFixed(1)+"%");
+  rf.exit().transition(t).style("opacity",0).remove();
+
+  const lg = d3.select("#legend").html("");
+  if (mode!=="flat"){
+    const seen = new Set();
+    items.forEach(s=>{
+      const key = regionColor(s.region)+"|"+shortRegion(s.region);
+      if (seen.has(key)) return; seen.add(key);
+      const e = lg.append("div").attr("class","lg");
+      e.append("span").attr("class","sw").style("background",regionColor(s.region));
+      e.append("span").text(shortRegion(s.region));
+    });
+  }
+  t.on("end.labels", updateLabels);
+  updateLabels();
+}
+
+const zoom = d3.zoom()
+  .scaleExtent([0.8, 300])
+  .on("start",()=>stage.classList.add("grabbing"))
+  .on("end",()=>stage.classList.remove("grabbing"))
+  .on("zoom",(ev)=>{
+    g.attr("transform",ev.transform);
+    k = ev.transform.k;
+    updateLabels();
+  });
+
+svg.call(zoom).on("dblclick.zoom",null);
+
+function flyTo(d){
+  const w=d.x1-d.x0, h=d.y1-d.y0;
+  const scale = Math.min(280, 0.85/Math.max(w/W, h/H));
+  const tx = W/2 - scale*(d.x0+w/2);
+  const ty = H/2 - scale*(d.y0+h/2);
+  svg.transition().duration(750).ease(d3.easeCubicInOut)
+    .call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(scale));
+}
+
+document.getElementById("reset").onclick = ()=>{
+  svg.transition().duration(600).ease(d3.easeCubicInOut)
+    .call(zoom.transform, d3.zoomIdentity);
+};
+
+document.querySelectorAll("#modes button").forEach(b=>{
+  b.onclick = ()=>applyMode(b.dataset.mode);
+});
+
+applyMode("regioncolor");
+</script>
+</body>
+</html>
