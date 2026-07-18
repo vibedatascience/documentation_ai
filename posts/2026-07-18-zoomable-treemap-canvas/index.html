@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="author" content="Rahul">
-<title>A zoomable treemap canvas for world population | vibelogs</title>
+<title>Zoomable treemap canvases: population, GDP, cities | vibelogs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -47,7 +47,7 @@ footer a{color:var(--muted)}
 
 <header class="post">
   <div class="meta"><span>[2026-07-18]</span><span>Rahul</span><span class="upd">updated 2026-07-18</span><span class="tag">DATA-SCIENCE</span></div>
-  <h1>A zoomable treemap canvas for world population</h1>
+  <h1>Zoomable treemap canvases: population, GDP, cities</h1>
 </header>
 
 <article>
@@ -92,6 +92,31 @@ rows = [{"name": r["country"]["value"], "pop": r["value"],
   });
 }</code></pre>
 <p>Each tile carries three text lines: the country name, the population, then share and rank. Each line has its own visibility threshold based on on-screen height, so tiles gain detail progressively as you zoom instead of all at once. Stroke widths are divided by k too, otherwise borders turn into walls at 100x.</p>
+
+<h2>World GDP</h2>
+<p>Same canvas, different data: 214 countries from the World Bank, each at its most recent available year of GDP in current US dollars. Three independent toggles: size by GDP or population, color by GDP per capita, region, or a flat palette, and layout flat or grouped by region. The per capita gradient is log scaled, from Burundi at $234 to Monaco at $290K, because the ratio is over 1,000x and a linear scale would make everything below Western Europe the same shade.</p>
+
+<div class="viz">
+<iframe src="gdp.html" title="World GDP treemap canvas" loading="lazy"></iframe>
+<div class="open"><a href="gdp.html">open full screen →</a></div>
+</div>
+
+<p>Sizing a treemap by per capita directly is broken design. Per capita values do not sum to anything, and a treemap is a part-of-whole chart. So per capita lives in color instead: size by GDP with per capita color makes Europe read as a dark wealthy block, and toggling size to population turns most of the map pale as India and the rest of South Asia expand.</p>
+<p>All four layouts (two size metrics times flat or grouped) are computed once up front, so every toggle is a 700ms tile transition with nothing recomputed. Tooltips flag GDP years older than 2024 in yellow, since a few countries like Eritrea only report old numbers.</p>
+
+<h2>The 2,000 biggest cities</h2>
+<p>Metro population for every city above 351K, from the simplemaps world cities database (47,653 cities with population, top 2,000 kept). Tokyo at 37.7M down to Arkhangelsk. Continent coloring is the default and Asia alone is 1,267 of the 2,000 tiles.</p>
+
+<div class="viz">
+<iframe src="cities.html" title="Biggest cities treemap canvas" loading="lazy"></iframe>
+<div class="open"><a href="cities.html">open full screen →</a></div>
+</div>
+
+<p>The layout toggle has a two-level mode, continent then country, where China and India become giant sub-blocks inside Asia and zooming into the US block gives a ranked map of American metros on its own. Group labels are zoom-aware: continent headers show below 3.5x, country labels only between 2x and 25x and only when the block is large enough on screen, so one level of annotation is visible at a time.</p>
+<p>At 2,000 tiles the d3 selection-based label pass from the population version was too slow per zoom event. Label updates now write to the DOM directly inside a requestAnimationFrame throttle, and tiles under 34px on screen skip text work entirely. Zooming stays smooth to 200x.</p>
+
+<div class="gotcha"><strong>GOTCHA · DATA</strong><br>
+GeoNames was the first choice for cities but its server fails the TLS handshake through my egress proxy. The simplemaps CSV on GitHub is stored with git-lfs, so <code>raw.githubusercontent.com</code> returns a pointer file; the actual bytes live at <code>media.githubusercontent.com/media/&lt;org&gt;/&lt;repo&gt;/&lt;branch&gt;/&lt;path&gt;</code>. Also, simplemaps mixes metro and city-proper populations depending on the country, the standard tradeoff with any global city list.</div>
 
 </article>
 
