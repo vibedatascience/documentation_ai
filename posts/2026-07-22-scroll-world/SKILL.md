@@ -1,60 +1,57 @@
 ---
-name: scroll-world-realtime
-description: Build a scroll-scrubbed camera flight through any subject as one self-contained HTML file. Scrolling drives a continuous camera along a path through a sequence of scenes, with a copy card, rail dot, and HUD per scene. Scenes can be built geometry, real terrain, satellite city slabs, or a full globe with dives; the engine is the same. No API keys, no video generation, no runtime fetches. Use when the user wants a scroll cinematic, a fly-through landing page, a scroll world, or a scroll-driven data story over real places or data.
+name: scroll-flight
+description: Build the scroll-scrubbed flight UX for any subject as one self-contained HTML file. Scrolling drives a continuous camera along a path through an ordered sequence of scenes with no cuts; each scene has a copy card, a rail dot, and optional HUD readouts. The scene content can be anything renderable. Use when the user wants a scroll cinematic, a fly-through page, a scroll world, or a scroll-driven story in any visual style.
 ---
 
-# scroll-world-realtime
+# scroll-flight
 
-One HTML file where scroll drives a camera. The visitor scrolls and the camera flies a continuous path through N scenes with no cuts. Each scene gets a copy card with real stats, a dot on a navigation rail, and optionally a HUD readout that tracks the flight. The original scroll-world skill renders the flight as AI-generated video scrubbed by scroll; this version renders it live in three.js, which removes the asset generation, the credit spend, and the seam problem entirely, because there are no seams in one continuous real-time camera.
+The UX: the page is one long scroll, and scrolling does not move the page, it moves a camera. The visitor flies through an ordered sequence of scenes as one continuous shot. Copy cards surface per scene, a rail shows where you are, and the whole thing is a single HTML file.
 
-## The invariant frame
+This skill is the frame. It says nothing about what the scenes contain; that is a per-project decision, and any renderer works behind it (three.js, canvas 2D, CSS transforms, pre-rendered frames).
 
-Every build is the same five pieces. Only the scene content changes.
+## The five pieces
 
-1. A tall scroll track (`height: N * 200vh` or more) over a fixed full-viewport canvas.
-2. A camera path: one `CatmullRomCurve3` through hand-placed waypoints (or a parametric path like orbit-dive-orbit), sampled at `t = scrollY / maxScroll`.
-3. Smoothed camera, raw UI. The camera follows `curT += (target - curT) * 0.08` for weight; every UI element (copy bands, rail dots, counters, HUD) reads the RAW scroll fraction. The camera may lag, the UI must never.
-4. Per-scene copy cards: eyebrow, headline, one paragraph, stat blocks with real numbers. A card is on when the raw fraction is inside its band. Rail dots scroll you to band centers on click.
-5. A loader that counts inlined assets, a scroll hint that disappears on first scroll, and a footer citing every data and imagery source.
+Every build is exactly these, wired the same way.
 
-## Scene content, pick per subject
+1. **Scroll track.** An empty div sets the page height, roughly `N * 200vh` for N scenes. More height per scene means slower, heavier flight. The visible content is a fixed, full-viewport stage behind it.
 
-- Built geometry: low-poly scenes from boxes, cylinders, cones on floating islands. Zero data fetches. Good for brands and stories.
-- Real terrain: AWS Terrarium elevation tiles (keyless) decoded to a displaced plane, textured with stitched Esri World Imagery. True vertical scale sells it.
-- Satellite slabs: one stitched Esri patch per place as a flat textured plane, camera does a low pass over each. Simplest hyperreal option.
-- Globe with dives: NASA Blue Marble sphere, camera dives exponentially from orbit to about 27 km per point, hi-res patch fades in at the bottom. The Google Earth feel comes from the exponential altitude curve, never linear.
+2. **One path.** A single continuous camera path through the scenes, parameterized by `t = scrollY / (scrollHeight - innerHeight)` in [0,1]. Hand-place waypoints so each scene gets an approach, a hold, and an exit. The hold is where the visitor reads; give it 25 to 40 percent of the scene's scroll budget. One continuous path is the whole point: no cuts means no seams, and the transitions between scenes are as designed as the scenes themselves.
 
-## Keyless asset endpoints
+3. **Smoothed camera, raw UI.** The camera follows the scroll target through a lerp (`cur += (target - cur) * 0.08`) so the flight has weight. Every UI element (cards, dots, counters, HUD) reads the RAW scroll fraction instead. The camera is allowed to lag; the UI is never allowed to, because UI driven by the smoothed value breaks at low frame rates and feels unresponsive at high ones.
 
-```
-elevation  https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png
-imagery    https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
-globe      https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73909/world.topo.bathy.200412.3x5400x2700.jpg
-```
+4. **Copy cards and rail.** One card per scene: eyebrow, headline, one short paragraph, 0 to 3 stat blocks. A card is on while the raw fraction sits inside that scene's hold band; it fades with a 0.4s transition and a small translateY. The rail is one dot per scene, active by band, click scrolls to the band center. Cards live in fixed-position DOM, not inside the renderer, so text stays crisp and selectable.
 
-Terrarium decode: `elev_m = R*256 + G + B/256 - 32768`. Fetch tiles with a thread pool and always run a second pass re-requesting any file under 500 bytes; a few tiles fail per batch. Stitch, resize, encode jpg quality 70 to 80, inline as base64. Base64 adds 37% to raw bytes; keep the final HTML under about 6 MB.
+5. **Furniture.** A loader that counts assets and fades out when ready. A "scroll" hint that disappears on first scroll. Optional HUD readouts that track the flight continuously (progress, a running total, whatever the subject offers). A footer citing sources if the content carries data.
 
-## Engine rules learned the hard way
+## Feel
 
-- Unlit materials for anything textured with real imagery. Sunlight is baked into satellite photos, and three r155+ physically correct lighting renders `MeshLambertMaterial` plus ambient dark. Use `MeshBasicMaterial`.
-- Scale discipline: pick a unit (1 unit = 100 m for terrain, R = 100 for a globe so 1 unit = 63.7 km) and derive every size from it. Real proportions are what make it read as real.
-- Globe dives need `logarithmicDepthBuffer: true` plus a dynamic near plane (`alt * 0.05`) or the surface z-fights at the bottom.
-- Terrain waypoints are placed as height-above-ground: sample the heightmap at (x, z) and add clearance, never hardcode y.
-- Stats never drive geometry they do not describe. Population fills cards and counters; it sizes nothing.
-- Phone hardening: `100dvh`, safe-area insets, ignore height-only resizes on touch (the URL bar), reduced-motion drops the smoothing and the hint animation.
-- No em or en dashes anywhere, including copy strings inside the JS.
+- Ease the sub-parameters. Raw linear t inside a scene reads mechanical; shape approach and exit with smoothstep.
+- If the camera moves through orders of magnitude of distance, interpolate that dimension in log space. Linear zoom always reads wrong.
+- The camera should never reverse direction along the path. A pull-back that retraces the approach reads as scrubbing a video backwards, which kills the flight illusion.
+- Direction changes get their own travel time while the camera is far from any scene. Turning while close to content reads as disorientation.
+- One idle animation per scene at most, something that moves without scroll, so a stopped page still feels alive.
 
-## Verify headless, trust numbers not eyes
+## Hardening
 
-Headless chromium runs software WebGL at a few fps, so the smoothed camera lags scroll badly and screenshots taken too early look broken when nothing is wrong. Two rules:
+- `100dvh` for the stage, safe-area insets for all fixed UI, `viewport-fit=cover`.
+- On touch devices, ignore resizes where only the height changed; that is the URL bar, and re-laying out on it makes the page jump. Keep the width-change and orientation paths.
+- `prefers-reduced-motion`: drop the camera lerp (snap to target), kill the hint animation and card transitions. The page must still fully work.
+- Keyboard: rail dots are real buttons with focus styles and labels.
+- The file is self-contained: assets inlined, no runtime fetches beyond at most one CDN script tag.
 
-- Assert UI state (card class, dot class, counter text) immediately after scrolling; it reads the raw fraction and must be correct at any frame rate.
-- Judge framing by pixel statistics after a 15 to 30 second settle: center-region mean above 90 and std above 30 means a textured scene fills the frame; a dark or flat read means the camera had not arrived. Also verify any computed total (a running population counter must end at the exact sum of the inputs).
+## Verify headless
+
+Headless browsers run rendering slowly, so the smoothed camera lags scroll and early screenshots look broken when nothing is wrong. Two rules:
+
+- Assert UI state (card class, dot class, HUD text) immediately after each scripted scroll. It reads the raw fraction, so it must be correct at any frame rate. Walk every band; all of them fire or the build fails.
+- Judge visuals only after a long settle (15 to 30 seconds), and prefer pixel statistics of the frame center over eyeballing when the environment cannot display images.
+
+Any number the page computes from its inputs (a running total, a final count) gets checked against the independently computed answer.
 
 ## Ship checklist
 
-- [ ] One file, all assets inlined, only external reference is the three.js CDN script tag
-- [ ] Every copy band and rail dot asserted in headless
-- [ ] Sources cited in the footer
-- [ ] `grep -c` for em and en dashes returns 0 (append `; true`, it exits 1 on zero matches)
-- [ ] Loads on a phone viewport with nothing overlapping
+- [ ] One file, opens from disk with no network beyond the CDN tag
+- [ ] Every card band and rail dot asserted in headless
+- [ ] Reduced motion, phone viewport, and URL-bar scroll all clean
+- [ ] Camera never reverses along the path
+- [ ] Sources cited if the content carries data
