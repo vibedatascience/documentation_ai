@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Rahul">
+<title>Scroll worlds: one engine, three flights | vibelogs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FAFAF8;--ink:#17171C;--cobalt:#2545FF;--muted:#6E6E76;--rule:#E7E7E2;--chip:#EEF1FF}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.7}
+.wrap{max-width:680px;margin:0 auto;padding:0 24px}
+.top{padding:40px 0 0;font-family:'IBM Plex Mono',monospace;font-size:0.8rem}
+.top a{color:var(--muted);text-decoration:none}
+.top a:hover{color:var(--cobalt)}
+header.post{padding:32px 0 24px;border-bottom:1px solid var(--rule)}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted);display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.upd{color:var(--muted)}
+.tag{background:var(--chip);color:var(--cobalt);padding:1px 8px;border-radius:4px;font-weight:500}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);letter-spacing:-0.02em;line-height:1.2}
+article{padding:32px 0 60px}
+article h2{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:1.3rem;margin:36px 0 12px}
+article p{margin:0 0 18px}
+article ol,article ul{margin:0 0 18px 22px}
+article li{margin-bottom:8px}
+article a{color:var(--cobalt)}
+pre{background:#111116;color:#E8E8EE;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;line-height:1.55;padding:16px 18px;border-radius:8px;overflow-x:auto;margin:0 0 18px}
+code{font-family:'IBM Plex Mono',monospace;font-size:0.86em;background:var(--chip);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:0.9rem}
+th,td{border:1px solid var(--rule);padding:8px 12px;text-align:left;vertical-align:top}
+th{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff}
+.gotcha{border-left:3px solid var(--cobalt);padding:12px 16px;background:#fff;margin:0 0 18px}
+.gotcha strong{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;letter-spacing:0.08em;color:var(--cobalt)}
+.viz{margin:0 0 18px}
+.viz iframe{width:100%;height:640px;border:1px solid var(--rule);border-radius:8px;background:#02040a}
+.viz .open{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;margin-top:8px}
+footer{border-top:1px solid var(--rule);padding:24px 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted)}
+footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../../">← vibelogs</a></div>
+
+<header class="post">
+  <div class="meta"><span>[2026-07-22]</span><span>Rahul</span><span class="upd">updated 2026-07-22</span><span class="tag">DATA-SCIENCE</span></div>
+  <h1>Scroll worlds: one engine, three flights</h1>
+</header>
+
+<article>
+<p>I found <a href="https://github.com/oso95/scroll-world">oso95/scroll-world</a>, a skill that turns a brand into a scroll-scrubbed camera flight through AI-generated video. The idea is great and the video pipeline is the expensive part: image gens, video gens, frame-locked seams, credits. So I rebuilt the flow in real time. Scroll still drives a continuous camera through a chain of scenes, but the scenes render live in three.js, which means no asset generation, no credit spend, and no seams, because one continuous camera has nothing to stitch.</p>
+
+<p>Three builds came out of the same engine in one session. The flagship is a Google Earth style dive through the ten biggest cities on the planet.</p>
+
+<div class="viz">
+<iframe src="globe.html" title="Ten dives globe" loading="lazy"></iframe>
+<div class="open"><a href="globe.html">open full screen →</a></div>
+</div>
+
+<p>You start about 14,000 km out over a NASA Blue Marble sphere. The planet rotates to Japan, the camera dives to 27 km over Tokyo, a real Esri satellite patch fades in on the surface at its true 19.6 km footprint, a card shows the 2026 population, and then you climb back to orbit and the planet turns to Delhi. Ten dives, ranked by World Population Review 2026 agglomeration numbers, with a running counter that ends at the exact 263.0M sum of all ten.</p>
+
+<h2>The other two flights</h2>
+
+<p>Same engine, different scene content. This one flies the Khumbu valley from Lukla to Everest over real SRTM elevation at true vertical scale, textured with 320 stitched Esri tiles, with expedition and death stats per peak from the Himalayan Database.</p>
+
+<div class="viz">
+<iframe src="khumbu.html" title="The Khumbu flight" loading="lazy"></iframe>
+<div class="open"><a href="khumbu.html">open full screen →</a></div>
+</div>
+
+<p>And this one skips the globe and the terrain entirely: ten flat satellite slabs floating in the dark, one low pass per city. It was the first hyperreal version and it still holds up as the simplest.</p>
+
+<div class="viz">
+<iframe src="cities.html" title="Ten cities from above" loading="lazy"></iframe>
+<div class="open"><a href="cities.html">open full screen →</a></div>
+</div>
+
+<h2>The invariant frame</h2>
+
+<p>Every build is the same five pieces, and only the scene content changes.</p>
+
+<ol>
+<li>A tall scroll track over a fixed full-viewport canvas.</li>
+<li>One camera path, a CatmullRomCurve3 through hand-placed waypoints, sampled at the scroll fraction.</li>
+<li>A smoothed camera and a raw UI. The camera follows the scroll target with a lerp for weight; every card, dot, and counter reads the raw scroll fraction so the UI is correct at any frame rate.</li>
+<li>Per-scene copy cards with real stats, and rail dots that jump between scenes.</li>
+<li>A loader counting inlined assets, a scroll hint, and a footer citing every source.</li>
+</ol>
+
+<h2>Data and imagery, all keyless</h2>
+
+<pre><code>elevation  s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png
+imagery    server.arcgisonline.com/.../World_Imagery/MapServer/tile/{z}/{y}/{x}
+globe      eoimages.gsfc.nasa.gov/.../world.topo.bathy.200412.3x5400x2700.jpg</code></pre>
+
+<p>Terrarium elevation decodes as <code>R*256 + G + B/256 - 32768</code> meters. Everything gets stitched, resized, jpg-encoded, and inlined as base64, so each page is one file with no runtime fetches beyond the three.js CDN script tag. Base64 adds 37% to raw bytes; each of these pages lands between 4 and 6 MB.</p>
+
+<div class="gotcha"><strong>GOTCHA · LIGHTING</strong><br>
+three r155+ switched to physically correct lighting, so a Lambert material under an ambient light renders satellite imagery dark. Sunlight is already baked into the photos. Use MeshBasicMaterial for anything textured with real imagery.</div>
+
+<div class="gotcha"><strong>GOTCHA · HEADLESS QA</strong><br>
+Headless chromium runs software WebGL at a few fps, so the smoothed camera lags scroll and early screenshots look broken when nothing is wrong. Assert UI state right after scrolling, since it reads the raw fraction, and judge framing by center-region pixel mean and std after a 15 to 30 second settle instead of by eye.</div>
+
+<h2>The skill</h2>
+
+<p>The whole flow is written up as a generic agent skill in <a href="SKILL.md">SKILL.md</a> next to this post: the invariant frame, the scene-content menu from built geometry to globe dives, the keyless endpoints, the engine rules, and the headless verification method. Point an agent at it with any subject and a ranked list of places or stats and it should come back with a working flight.</p>
+
+</article>
+
+<footer><a href="../../">← back to all logs</a></footer>
+</div>
+</body>
+</html>
