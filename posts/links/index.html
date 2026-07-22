@@ -22,6 +22,11 @@ header.post{padding:32px 0 24px;border-bottom:1px solid var(--rule)}
 h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);letter-spacing:-0.02em;line-height:1.2}
 article{padding:32px 0 60px}
 article p.intro{margin:0 0 26px;color:var(--muted)}
+nav.filters{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px;padding:14px 0;background:var(--paper);border-bottom:1px solid var(--rule);margin-bottom:22px}
+.filters button{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.04em;background:none;border:1px solid var(--rule);color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer;transition:all .15s}
+.filters button:hover{border-color:var(--cobalt);color:var(--cobalt)}
+.filters button.active{background:var(--cobalt);border-color:var(--cobalt);color:#fff}
+.filters button:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media (max-width:640px){.grid{grid-template-columns:1fr}}
 .card{display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:10px;background:#fff;text-decoration:none;color:var(--ink);overflow:hidden;transition:border-color .15s,transform .15s}
@@ -50,9 +55,17 @@ footer a{color:var(--muted)}
 <article>
 <p class="intro">Good AI links, saved as I find them. Newest first.</p>
 
+<nav class="filters">
+  <button class="active" data-filter="all">ALL</button>
+  <button data-filter="tools">TOOLS</button>
+  <button data-filter="agents">AGENTS</button>
+  <button data-filter="learning">LEARNING</button>
+  <button data-filter="data">DATA</button>
+</nav>
+
 <div class="grid">
 
-<a class="card" href="https://bharatlas.com/">
+<a class="card" data-cat="data" href="https://bharatlas.com/">
   <div class="thumb"><img src="bharatlas.png" alt="bharatlas preview"></div>
   <div class="body">
     <div class="cmeta"><span>bharatlas.com</span><span>[2026-07-22]</span></div>
@@ -61,7 +74,7 @@ footer a{color:var(--muted)}
   </div>
 </a>
 
-<a class="card" href="https://github.com/MadsLorentzen/ai-job-search">
+<a class="card" data-cat="agents" href="https://github.com/MadsLorentzen/ai-job-search">
   <div class="thumb"><img src="ai-job-search.png" alt="ai-job-search repo preview"></div>
   <div class="body">
     <div class="cmeta"><span>github.com</span><span>[2026-07-22]</span></div>
@@ -70,7 +83,7 @@ footer a{color:var(--muted)}
   </div>
 </a>
 
-<a class="card" href="https://nycsim.com/">
+<a class="card" data-cat="data" href="https://nycsim.com/">
   <div class="thumb"><img src="nycsim.png" alt="NYC Simulator logo" style="object-fit:contain;padding:10px;background:var(--chip)"></div>
   <div class="body">
     <div class="cmeta"><span>nycsim.com</span><span>[2026-07-22]</span></div>
@@ -79,7 +92,7 @@ footer a{color:var(--muted)}
   </div>
 </a>
 
-<a class="card" href="https://github.com/kepano/kepano-obsidian">
+<a class="card" data-cat="tools" href="https://github.com/kepano/kepano-obsidian">
   <div class="thumb"><img src="kepano-obsidian.png" alt="kepano-obsidian repo preview"></div>
   <div class="body">
     <div class="cmeta"><span>github.com</span><span>[2026-07-22]</span></div>
@@ -88,7 +101,7 @@ footer a{color:var(--muted)}
   </div>
 </a>
 
-<a class="card" href="https://sandybkwon.substack.com/p/attempting-to-become-an-expert-with">
+<a class="card" data-cat="learning" href="https://sandybkwon.substack.com/p/attempting-to-become-an-expert-with">
   <div class="thumb"><img src="kwontext-expert-ai.jpg" alt="Kwontext Window post preview"></div>
   <div class="body">
     <div class="cmeta"><span>sandybkwon.substack.com</span><span>[2026-07-22]</span></div>
@@ -97,7 +110,7 @@ footer a{color:var(--muted)}
   </div>
 </a>
 
-<a class="card" href="https://transitions.dev/">
+<a class="card" data-cat="tools" href="https://transitions.dev/">
   <div class="thumb"><img src="transitions-dev.jpg" alt="Transitions.dev preview"></div>
   <div class="body">
     <div class="cmeta"><span>transitions.dev</span><span>[2026-07-22]</span></div>
@@ -112,5 +125,15 @@ footer a{color:var(--muted)}
 
 <footer><a href="../../">← back to all logs</a></footer>
 </div>
+<script>
+const btns = document.querySelectorAll('.filters button');
+const cards = document.querySelectorAll('.card');
+btns.forEach(b => b.addEventListener('click', () => {
+  btns.forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  const f = b.dataset.filter;
+  cards.forEach(c => { c.style.display = (f === 'all' || c.dataset.cat === f) ? '' : 'none'; });
+}));
+</script>
 </body>
 </html>
