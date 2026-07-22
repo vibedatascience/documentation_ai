@@ -22,14 +22,16 @@ header.post{padding:32px 0 24px;border-bottom:1px solid var(--rule)}
 h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);letter-spacing:-0.02em;line-height:1.2}
 article{padding:32px 0 60px}
 article p.intro{margin:0 0 26px;color:var(--muted)}
-.card{display:flex;gap:16px;align-items:stretch;border:1px solid var(--rule);border-radius:10px;background:#fff;text-decoration:none;color:var(--ink);margin:0 0 16px;overflow:hidden;transition:border-color .15s}
-.card:hover{border-color:var(--cobalt)}
-.card .thumb{flex:0 0 120px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:2rem;color:var(--cobalt);min-height:100px}
-.card .thumb img{width:120px;height:100%;object-fit:cover;display:block}
-.card .body{padding:12px 16px 12px 0;min-width:0}
-.card .cmeta{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);display:flex;gap:10px;margin-bottom:4px}
-.card h3{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:1.05rem;line-height:1.35;margin:0 0 4px}
-.card p{font-size:0.88rem;color:var(--muted);margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+.card{display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:10px;background:#fff;text-decoration:none;color:var(--ink);overflow:hidden;transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--cobalt);transform:translateY(-2px)}
+.card .thumb{aspect-ratio:1200/630;background:var(--chip);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.card .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.card .body{padding:14px 16px 16px;min-width:0}
+.card .cmeta{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);display:flex;gap:10px;margin-bottom:6px}
+.card h3{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:1.02rem;line-height:1.35;margin:0 0 6px}
+.card p{font-size:0.86rem;line-height:1.55;color:var(--muted);margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card p.note{color:var(--ink);margin-top:4px}
 .stub{font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--muted);border:1px dashed var(--rule);border-radius:8px;padding:24px;text-align:center;margin-top:8px}
 footer{border-top:1px solid var(--rule);padding:24px 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted)}
@@ -47,6 +49,8 @@ footer a{color:var(--muted)}
 
 <article>
 <p class="intro">Good AI links, saved as I find them. Newest first.</p>
+
+<div class="grid">
 
 <a class="card" href="https://bharatlas.com/">
   <div class="thumb"><img src="bharatlas.png" alt="bharatlas preview"></div>
@@ -101,6 +105,8 @@ footer a{color:var(--muted)}
     <p>Collection of the most essential UI transitions for web apps. Copy as CSS or React, or install as a skill for Claude, Cursor, or Codex.</p>
   </div>
 </a>
+
+</div>
 
 </article>
 
