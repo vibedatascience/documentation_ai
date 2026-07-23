@@ -102,7 +102,10 @@ footer a{color:var(--muted)}
 </table>
 
 <h3 id="l1-the-problem">The problem</h3>
-<p>AI was founded at the 1956 Dartmouth workshop (Minsky, McCarthy, and Shannon were all MIT), and the founders expected the field to be substantially solved within months. The slide framing is that the decades since have produced a sequence of breakthroughs, each one an answer to the previous approach's failure:</p>
+<ul>
+<li>AI was founded at the 1956 Dartmouth workshop. Minsky, McCarthy, and Shannon were all MIT.</li>
+<li>The decades since have produced a sequence of breakthroughs, each one an answer to the previous approach's failure:</li>
+</ul>
 
 <div class="pipeline"><b>traditional AI</b>   interview experts, hand-write if-then rules
       │          fails: Polanyi's paradox, no generalization
@@ -115,15 +118,23 @@ footer a{color:var(--muted)}
       ▼
 <b>generative AI</b>    deep learning that produces unstructured output</div>
 
-<p>Rule-based AI failed for two reasons. First, Polanyi's paradox: we know more than we can tell. You classify dog versus cat in about 20 milliseconds, but you cannot articulate how, and when you try, your explanation does not match what your brain actually does. If the expert cannot state the rule, you cannot program it. Second, hand-written rules are a small sample of an infinite world, so they break on situations nobody anticipated.</p>
-
-<p>Machine learning (learn a mapping from input-output pairs using statistics; linear regression counts) fixed that, but only for structured data, meaning data that fits in spreadsheet columns. An image is three tables of numbers, one each for red, green, and blue light, every value 0 to 255. A 251 in the blue table means "lots of blue light here" whether the object is sky, water, or paint. The raw numbers carry no intrinsic meaning, so no statistical algorithm can use them directly. The historical workaround was manual feature engineering: measure beak length, wingspan, and primary color, and build a spreadsheet from the picture. That is a <em>representation</em> of the raw data, and building representations by hand was the human bottleneck. Whole PhDs went into a representation for one narrow problem, like detecting one stroke type in CT scans.</p>
+<ul>
+<li>Traditional AI: ask human experts how they do the task, write if-then rules, program the rules. Fails twice. Polanyi's paradox: we know more than we can tell. And hand-written rules cannot cover situations nobody anticipated.</li>
+<li>Machine learning: give the computer input-output examples and learn the mapping statistically. Huge impact (credit scoring, loan granting, disease prediction, demand forecasting), but only where the input is structured.</li>
+<li>Structured data: data you can numericalize into a spreadsheet.</li>
+<li>The raw form of unstructured data has no intrinsic meaning. An image is three tables of 0-255 numbers for red, green, and blue light. A 251 in the blue table says nothing about what the object is.</li>
+<li>The workaround was to manually build a representation first (feature extraction). Massive human effort, and this human bottleneck sharply limited the reach of ML.</li>
+</ul>
 
 <h3 id="l1-the-idea">The idea</h3>
-<p>Deep learning learns the representations automatically from the raw input, then pipes them into what is basically a linear or logistic regression at the end. Three forces converged to make the old neural network idea finally work: new algorithmic tricks, large datasets, and GPUs.</p>
+<ul>
+<li>Deep learning extracts representations automatically from raw unstructured data, then feeds them to what is basically linear or logistic regression at the end.</li>
+<li>This demolishes the human bottleneck.</li>
+<li>The breakthrough came from three forces: new algorithmic ideas, unprecedented data from the digitization of everything, and GPU compute, applied to an old ML idea, neural networks.</li>
+<li>Immediate application: every sensor in the world can be given the ability to detect, recognize, and classify what it is sensing.</li>
+</ul>
 
-<p>The business consequence he pushes: every sensor in the world can now detect, recognize, and classify what it senses.</p>
-
+<script>
 // toc scroll-spy
 var tocLinks=document.querySelectorAll('.toc a');
 var tocSecs=[].map.call(tocLinks,function(a){return document.getElementById(a.getAttribute('href').slice(1))});
