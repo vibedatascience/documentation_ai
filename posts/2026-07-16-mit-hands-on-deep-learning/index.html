@@ -69,6 +69,7 @@ footer a{color:var(--muted)}
 <a href="#lecture-01">Lecture 1</a>
 <a class="sub" href="#l1-the-problem">The problem</a>
 <a class="sub" href="#l1-the-idea">The idea</a>
+<a class="sub" href="#l1-what-is-a-nn">What is a NN?</a>
 </nav>
 
 <header class="post">
@@ -134,7 +135,56 @@ footer a{color:var(--muted)}
 <li>Immediate application: every sensor in the world can be given the ability to detect, recognize, and classify what it is sensing.</li>
 </ul>
 
+<h3 id="l1-what-is-a-nn">What is a neural network?</h3>
+<ul>
+<li>Start at the beginning: recall logistic regression. Inputs [x1, x2, ..., xk] go in, a probability comes out.</li>
+<li>Worked example: predict who gets called for a job interview from GPA and experience. Fitting the model gives intercept 0.4 and coefficients 0.2 (GPA) and 0.5 (experience).</li>
+<li>The formula can be rewritten as a network of mathematical operations: input data flowing through two functions that have been connected. First a linear sum, then the sigmoid. Data flows left to right.</li>
+</ul>
+
+<div class="pipeline">GPA ────0.2───┐
+              ├──▶ (+) ──▶ σ ──▶ P(interview)
+exp ────0.5───┘     ▲
+                    │ 0.4 (bias)</div>
+
+<ul>
+<li>Terminology swap: coefficients are weights, the intercept is a bias.</li>
+</ul>
+
+<div class="widget" id="wlogit">
+<div class="wtitle">Try it: data flowing through the network (slides 60-63)</div>
+<div class="row">
+<button data-g="3.8" data-e="1.2">GPA 3.8, exp 1.2 (slide 62)</button>
+<button data-g="3.94" data-e="3.0">GPA 3.94, exp 3.0 (row 7, interviewed)</button>
+<button data-g="3.37" data-e="0.07">GPA 3.37, exp 0.07 (row 2, not)</button>
+</div>
+<div class="row">GPA <input type="range" id="lg_gpa" min="0" max="4" step="0.05" value="3.8"><span class="val" id="lg_gpa_v">3.80</span></div>
+<div class="row">Experience (yrs) <input type="range" id="lg_exp" min="0" max="10" step="0.1" value="1.2"><span class="val" id="lg_exp_v">1.2</span></div>
+<div class="calc" id="lg_out"></div>
+</div>
+
+
 <script>
+// logistic widget
+function sig(a){return 1/(1+Math.exp(-a))}
+function f2(x,n){return x.toFixed(n===undefined?2:n)}
+function lgU(){
+var g=+document.getElementById('lg_gpa').value, e=+document.getElementById('lg_exp').value;
+document.getElementById('lg_gpa_v').textContent=f2(g);
+document.getElementById('lg_exp_v').textContent=f2(e,1);
+var a=0.4+0.2*g+0.5*e;
+document.getElementById('lg_out').innerHTML=
+'a = 0.4 + 0.2('+f2(g)+') + 0.5('+f2(e,1)+') = '+f2(a)+'<br>'+
+'P(interview) = &sigma;('+f2(a)+') = <span class="big">'+f2(sig(a))+'</span>';
+}
+['lg_gpa','lg_exp'].forEach(function(id){document.getElementById(id).addEventListener('input',lgU)});
+document.querySelectorAll('#wlogit button').forEach(function(b){
+b.addEventListener('click',function(){
+document.getElementById('lg_gpa').value=b.dataset.g;
+document.getElementById('lg_exp').value=b.dataset.e;
+lgU();});});
+lgU();
+
 // toc scroll-spy
 var tocLinks=document.querySelectorAll('.toc a');
 var tocSecs=[].map.call(tocLinks,function(a){return document.getElementById(a.getAttribute('href').slice(1))});
