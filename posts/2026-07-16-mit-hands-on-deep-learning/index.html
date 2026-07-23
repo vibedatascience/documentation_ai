@@ -296,6 +296,11 @@ for(var j=0;j<tocSecs.length;j++){if(tocSecs[j]&&tocSecs[j].getBoundingClientRec
 tocLinks.forEach?tocLinks.forEach(function(a,k){a.classList.toggle('here',k===i)}):0;
 }
 window.addEventListener('scroll',spy);spy();
+
+// external links open in new tab
+document.querySelectorAll('a[href^="http"]').forEach(function(a){
+a.target='_blank';a.rel='noopener';
+});
 </script>
 
 </article>
