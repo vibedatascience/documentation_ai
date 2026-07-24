@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Rahul">
+<title>Interpreting World History: Industrial Revolution to the Present | vibelogs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FAFAF8;--ink:#17171C;--cobalt:#2545FF;--muted:#6E6E76;--rule:#E7E7E2;--chip:#EEF1FF}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.7}
+.wrap{max-width:680px;margin:0 auto;padding:0 24px}
+.top{padding:40px 0 0;font-family:'IBM Plex Mono',monospace;font-size:0.8rem}
+.top a{color:var(--muted);text-decoration:none}
+.top a:hover{color:var(--cobalt)}
+header.post{padding:32px 0 24px;border-bottom:1px solid var(--rule)}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted);display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.upd{color:var(--muted)}
+.tag{background:var(--chip);color:var(--cobalt);padding:1px 8px;border-radius:4px;font-weight:500}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.7rem,5vw,2.3rem);letter-spacing:-0.02em;line-height:1.2}
+article{padding:32px 0 60px}
+article h2{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:1.3rem;margin:36px 0 12px}
+article p{margin:0 0 18px}
+article ol,article ul{margin:0 0 18px 22px}
+article li{margin-bottom:8px}
+article a{color:var(--cobalt)}
+pre{background:#111116;color:#E8E8EE;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;line-height:1.55;padding:16px 18px;border-radius:8px;overflow-x:auto;margin:0 0 18px}
+code{font-family:'IBM Plex Mono',monospace;font-size:0.86em;background:var(--chip);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:0.9rem}
+th,td{border:1px solid var(--rule);padding:8px 12px;text-align:left;vertical-align:top}
+th{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:#fff}
+.gotcha{border-left:3px solid var(--cobalt);padding:12px 16px;background:#fff;margin:0 0 18px}
+.gotcha strong{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;letter-spacing:0.08em;color:var(--cobalt)}
+.pipeline{font-family:'IBM Plex Mono',monospace;font-size:0.8rem;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:16px 18px;margin:0 0 18px;overflow-x:auto;white-space:pre;line-height:1.8;color:var(--ink)}
+.pipeline b{color:var(--cobalt);font-weight:500}
+.toc{position:fixed;top:120px;left:calc(50% - 340px - 200px);width:170px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;line-height:1.5}
+.toc .tlabel{color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;font-size:0.68rem}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 0 4px 10px;border-left:2px solid var(--rule)}
+.toc a:hover{color:var(--ink)}
+.toc a.here{color:var(--cobalt);border-left-color:var(--cobalt);font-weight:500}
+.toc a.sub{padding-left:22px;font-size:0.68rem}
+@media(max-width:1100px){.toc{display:none}}
+article h3{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:1.05rem;margin:28px 0 10px}
+#wnet .np{transition:opacity 0.45s}
+#wnet .npdim{opacity:0.1}
+#wnet button.on{background:var(--cobalt);color:#fff}
+footer{border-top:1px solid var(--rule);padding:24px 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted)}
+footer a{color:var(--muted)}
+.widget{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:18px;margin:0 0 18px}
+.widget .wtitle{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--cobalt);margin-bottom:12px}
+.widget .row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;flex-wrap:wrap}
+.widget input[type=range]{flex:1;min-width:120px;accent-color:var(--cobalt)}
+.widget .val{min-width:52px;text-align:right;font-weight:500}
+.widget .calc{font-family:'IBM Plex Mono',monospace;font-size:0.8rem;background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;margin-top:10px;line-height:1.9;overflow-x:auto}
+.widget .big{color:var(--cobalt);font-weight:700}
+.widget button{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;border:1px solid var(--rule);background:var(--paper);padding:4px 10px;border-radius:5px;cursor:pointer}
+.widget button.on{background:var(--chip);border-color:var(--cobalt);color:var(--cobalt);font-weight:500}
+.widget svg{width:100%;height:auto;display:block}
+.widget svg text{font-family:'IBM Plex Mono',monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../../">&larr; vibelogs</a></div>
+
+<header class="post">
+  <div class="meta"><span>[2026-07-24]</span><span>Rahul</span><span class="upd">updated 2026-07-24</span><span class="tag">NOTES</span></div>
+  <h1>Interpreting World History: Industrial Revolution to the Present</h1>
+</header>
+
+<article>
+<p id="course">Course: Interpreting World History, taught by <a href="https://www.youtube.com/@dillichalo">Vinay Lal</a> (UCLA, Winter 2019). 25 recorded lectures, <a href="https://www.youtube.com/playlist?list=PLy3KRgc0HE8BkSa9rINc4UpWDnOcdFOqB">full playlist</a>.</p>
+
+<table>
+<tr><th>#</th><th>Date</th><th>Topic</th><th>Video</th></tr>
+<tr><td>1</td><td>11 Jan 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=BQdMXDWSx-Y">watch</a></td></tr>
+<tr><td>2</td><td>14 Jan 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=OgKLzMFA0IA">watch</a></td></tr>
+<tr><td>3</td><td>16 Jan 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=Cgu1F_olpJI">watch</a></td></tr>
+<tr><td>4</td><td>23 Jan 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=P1BNVdqC9nY">watch</a></td></tr>
+<tr><td>5</td><td>25 Jan 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=XZrTZ22WO6U">watch</a></td></tr>
+<tr><td>6</td><td>28 Jan 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=0K_iw6h_Nhk">watch</a></td></tr>
+<tr><td>7</td><td>30 Jan 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=c6mglFO0ERA">watch</a></td></tr>
+<tr><td>8</td><td>01 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=CFNhjMW6QPo">watch</a></td></tr>
+<tr><td>9</td><td>04 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=mH4yqIpQans">watch</a></td></tr>
+<tr><td>10</td><td>06 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=wHkrsp2aDYI">watch</a></td></tr>
+<tr><td>11</td><td>08 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=M0vcTDCgBGk">watch</a></td></tr>
+<tr><td>12</td><td>11 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=NFOAtV_yGW0">watch</a></td></tr>
+<tr><td>13</td><td>13 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=xci-09kwkgE">watch</a></td></tr>
+<tr><td>14</td><td>15 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=UUmFZ7-yykw">watch</a></td></tr>
+<tr><td>15</td><td>20 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=qIjHeWxo2xI">watch</a></td></tr>
+<tr><td>16</td><td>22 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=ab2UMWEyg7w">watch</a></td></tr>
+<tr><td>17</td><td>25 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=3uq38Ude9G4">watch</a></td></tr>
+<tr><td>18</td><td>27 Feb 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=FwEjJje8Xi4">watch</a></td></tr>
+<tr><td>19</td><td>01 Mar 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=cMV8ODcFz3s">watch</a></td></tr>
+<tr><td>20</td><td>04 Mar 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=7h0NH7lCwE4">watch</a></td></tr>
+<tr><td>21</td><td>06 Mar 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=2AdlblK_GFQ">watch</a></td></tr>
+<tr><td>22</td><td>08 Mar 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=TZWjPOyS1BE">watch</a></td></tr>
+<tr><td>23</td><td>11 Mar 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=Y0gITiYCoBE">watch</a></td></tr>
+<tr><td>24</td><td>13 Mar 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=GxcLaidgZbE">watch</a></td></tr>
+<tr><td>25</td><td>15 Mar 2019</td><td></td><td><a href="https://www.youtube.com/watch?v=I6GOGm3tl0Y">watch</a></td></tr>
+</table>
+</article>
+
+<footer><a href="../../">&larr; back to all logs</a></footer>
+</div>
+</body>
+</html>
