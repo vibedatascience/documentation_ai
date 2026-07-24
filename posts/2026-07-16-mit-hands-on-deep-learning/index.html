@@ -71,6 +71,7 @@ footer a{color:var(--muted)}
 <a class="sub" href="#l1-the-idea">The idea</a>
 <a class="sub" href="#l1-what-is-a-nn">What is a NN?</a>
 <a class="sub" href="#l1-the-middle">The middle</a>
+<a class="sub" href="#l1-activations">Activations</a>
 </nav>
 
 <header class="post">
@@ -241,6 +242,16 @@ A neural network is nothing more than repeatedly transformed inputs which are fi
 <li>Explainability: for any input you know exactly how it flows through the network. What you cannot do is assign credit. The attributes get enmeshed in the middle, so no single input can be blamed for the outcome.</li>
 <li>The number of layers and the functions inside them are design choices. The problem fixes the input and the output, we choose the middle.</li>
 <li>Terminology: linear followed by nonlinear is a neuron (the brain link is loose and heavily argued, ignore it in practice). A vertical stack of neurons is a layer. The input layer is just the input, the output layer produces the output, everything between is a hidden layer.</li>
+</ul>
+
+<h3 id="l1-activations">Activation functions</h3>
+<ul>
+<li>An activation function receives a single number and outputs a single number. The linear function before it collapses 10 or 1,000 inputs into one scalar, and the activation transforms that scalar. That is all it is.</li>
+<li>Sigmoid: 1 / (1 + e<sup>&minus;a</sup>). Very negative inputs come out near 0, very large inputs come out near 1, and all the action happens in the middle range.</li>
+<li>Linear activation: passes the number straight through. Barely deserves the name, listed for completeness.</li>
+<li>ReLU (rectified linear unit), the hero of deep learning: max(x, 0). Positive numbers pass unchanged, negative numbers get squashed to 0. Many longtime practitioners believe ReLU is one of the key factors behind deep learning's success.</li>
+<li>There is a menagerie of others (tanh, leaky ReLU, GELU, swish), but ReLU in the hidden layers gets practically anything done.</li>
+<li>Rule of thumb: ReLU for hidden layers. The output layer is not a choice, the nature of the output dictates it. A single probability needs a sigmoid, 10 probabilities that must sum to 1 need a softmax.</li>
 </ul>
 
 
