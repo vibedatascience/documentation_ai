@@ -230,8 +230,8 @@ The moment you write the model as a network, you realize you can do lots of thin
 A neural network is nothing more than repeatedly transformed inputs which are finally fed to a linear or logistic regression model. The input stays the same, the output stays the same, only the middle changes.</div>
 
 <ul>
-<li>From Q&amp;A, explainability: for any input you know exactly how it flows through the network. The problem is credit. The attributes get enmeshed in the middle, so you cannot easily ascribe the outcome to any one input.</li>
-<li>From Q&amp;A, who controls the number of layers and functions: we do. Some things are given by the problem, some we design. Which is which comes shortly.</li>
+<li>Explainability: for any input you know exactly how it flows through the network. What you cannot do is assign credit. The attributes get enmeshed in the middle, so no single input can be blamed for the outcome.</li>
+<li>The number of layers and the functions inside them are design choices. The problem fixes the input and the output, we choose the middle.</li>
 <li>Terminology: linear followed by nonlinear is a neuron (the brain link is loose and heavily argued, ignore it in practice). A vertical stack of neurons is a layer. The input layer is just the input, the output layer produces the output, everything between is a hidden layer.</li>
 </ul>
 
