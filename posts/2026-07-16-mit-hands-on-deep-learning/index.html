@@ -182,9 +182,45 @@ The moment you write the model as a network, you realize you can do lots of thin
 <li>To learn smart representations, transform the inputs one or more times before doing the prediction. Flow the 3-dimensional vector through another function f(x):</li>
 </ul>
 
-<div class="pipeline">x1 ──┬──▶ (+) ──▶ f(x) ──┐
-x2 ──┼──▶ (+) ──▶ f(x) ──┼──▶ ... ──▶ (+) ──▶ σ ──▶ output
-xk ──┴──▶ (+) ──▶ f(x) ──┘</div>
+<svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;display:block;margin:24px auto;font-family:'IBM Plex Mono',monospace">
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+</marker>
+</defs>
+<g stroke="#64748b" stroke-width="1.2" marker-end="url(#ah)">
+<line x1="92" y1="70" x2="236" y2="70"/><line x1="92" y1="76" x2="236" y2="180"/><line x1="90" y1="84" x2="238" y2="292"/>
+<line x1="92" y1="184" x2="236" y2="76"/><line x1="92" y1="190" x2="236" y2="190"/><line x1="92" y1="196" x2="236" y2="298"/>
+<line x1="92" y1="304" x2="238" y2="84"/><line x1="92" y1="310" x2="236" y2="196"/><line x1="92" y1="316" x2="236" y2="310"/>
+<line x1="286" y1="70" x2="330" y2="70"/><line x1="286" y1="190" x2="330" y2="190"/><line x1="286" y1="310" x2="330" y2="310"/>
+<line x1="446" y1="70" x2="546" y2="176"/><line x1="446" y1="190" x2="546" y2="190"/><line x1="446" y1="310" x2="546" y2="204"/>
+<line x1="596" y1="190" x2="630" y2="190"/>
+<line x1="736" y1="190" x2="756" y2="190"/>
+</g>
+<g fill="#fdfcf9" stroke="#1a1a1a" stroke-width="1.4">
+<circle cx="64" cy="70" r="26"/><circle cx="64" cy="190" r="26"/><circle cx="64" cy="310" r="26"/>
+<circle cx="262" cy="70" r="24"/><circle cx="262" cy="190" r="24"/><circle cx="262" cy="310" r="24"/>
+<ellipse cx="390" cy="70" rx="56" ry="30"/><ellipse cx="390" cy="190" rx="56" ry="30"/><ellipse cx="390" cy="310" rx="56" ry="30"/>
+<circle cx="572" cy="190" r="24"/>
+<ellipse cx="684" cy="190" rx="52" ry="32"/>
+</g>
+<g fill="#1a1a1a" font-size="15" text-anchor="middle">
+<text x="64" y="75">x1</text><text x="64" y="195">x2</text><text x="64" y="315">xk</text>
+<text x="64" y="128" font-size="18">&#8942;</text>
+<text x="262" y="76" font-size="17">+</text><text x="262" y="196" font-size="17">+</text><text x="262" y="316" font-size="17">+</text>
+<text x="390" y="75" font-style="italic">f(x)</text><text x="390" y="195" font-style="italic">f(x)</text><text x="390" y="315" font-style="italic">f(x)</text>
+<text x="572" y="196" font-size="17">+</text>
+</g>
+<g fill="#1a1a1a" font-size="12" text-anchor="middle">
+<text x="684" y="184">1</text>
+<line x1="656" y1="190" x2="712" y2="190" stroke="#1a1a1a" stroke-width="1"/>
+<text x="684" y="205">1 + e<tspan font-size="9" dy="-5">-x</tspan></text>
+</g>
+<g fill="#2946d9" font-size="12" text-anchor="middle">
+<text x="390" y="20">stack of neurons: linear (+) then nonlinear f(x)</text>
+<text x="640" y="140">good old logistic regression</text>
+</g>
+</svg>
 
 <ul>
 <li>f(x) is called an activation function and it must be nonlinear, otherwise all the effort is a total waste of time. Take it on faith for now, the why comes in a few minutes.</li>
