@@ -75,6 +75,7 @@ footer a{color:var(--muted)}
 <a class="sub" href="#l1-what-is-a-nn">What is a NN?</a>
 <a class="sub" href="#l1-the-middle">The middle</a>
 <a class="sub" href="#l1-activations">Activations</a>
+<a class="sub" href="#l1-parameters">Parameters</a>
 </nav>
 
 <header class="post">
@@ -293,6 +294,21 @@ A neural network is nothing more than repeatedly transformed inputs which are fi
 <li>ReLU (rectified linear unit), the hero of deep learning: max(x, 0). Positive numbers pass unchanged, negative numbers get squashed to 0. Many longtime practitioners believe ReLU is one of the key factors behind deep learning's success.</li>
 <li>There is a menagerie of others (tanh, leaky ReLU, GELU, swish), but ReLU in the hidden layers gets practically anything done.</li>
 <li>Rule of thumb: ReLU for hidden layers. The output layer is not a choice, the nature of the output dictates it. A single probability needs a sigmoid, 10 probabilities that must sum to 1 need a softmax.</li>
+</ul>
+
+<h3 id="l1-parameters">Counting parameters</h3>
+<ul>
+<li>The first real network for the interview problem: 2 inputs (GPA, experience), one hidden layer of 3 ReLU neurons, a sigmoid output. Concept check from class: how many parameters does it have? Guesses were 12 and 9. The answer is 13, and the reason everyone says 12 is that they forget the biases.</li>
+<li>The recipe. Weights: every arrow between consecutive layers is one weight, so multiply the layer sizes. Biases: every neuron that computes something has one, so count the neurons (the input layer computes nothing).</li>
+</ul>
+
+<div class="pipeline">hidden: 2 inputs x 3 neurons = 6 weights + 3 biases = 9
+output: 3 inputs x 1 neuron  = 3 weights + 1 bias   = 4
+                                             total   13</div>
+
+<ul>
+<li>General rule for any layer: n<sub>in</sub> &times; n<sub>out</sub> weights plus n<sub>out</sub> biases. Sum over layers.</li>
+<li>Habit to build: hand-calculate the parameter count the first two or three times you meet a complex network. Once you get it right a couple of times you never need to again, but it proves you understand what is connected to what.</li>
 </ul>
 
 
