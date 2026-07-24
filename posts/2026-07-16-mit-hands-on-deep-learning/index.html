@@ -177,8 +177,7 @@ The moment you write the model as a network, you realize you can do lots of thin
 
 <h3 id="l1-the-middle">Things in the middle</h3>
 <ul>
-<li>A circle with a plus in it is shorthand for a linear function.</li>
-<li>The simplest thing to do in the middle: insert a stack of linear functions. k inputs (k could be 1,000) get compressed into, say, 3 numbers. Maybe 4 is right, maybe 10. How to choose comes later.</li>
+<li>The simplest thing to insert: a stack of linear functions (a circle with a plus is shorthand for one). k inputs, k could be 1,000, get compressed into, say, 3 numbers. Maybe 4 is right, maybe 10. How to choose comes later.</li>
 <li>To learn smart representations, transform the inputs one or more times before doing the prediction. Flow the 3-dimensional vector through another function f(x):</li>
 </ul>
 
@@ -225,16 +224,15 @@ The moment you write the model as a network, you realize you can do lots of thin
 <ul>
 <li>f(x) is called an activation function and it must be nonlinear, otherwise all the effort is a total waste of time. Take it on faith for now, the why comes in a few minutes.</li>
 <li>Repeat as many times as you want, 100 if you like. Every transformation gives the network capacity to learn something interesting from the data. Capacity, not a guarantee.</li>
-<li>When done transforming, pipe it into the good old logistic regression sigmoid. Input stays the same, output stays the same, only the middle changed.</li>
 </ul>
 
 <div class="gotcha"><strong>DEFINITION · NEURAL NETWORK</strong><br>
-A neural network is nothing more than repeatedly transformed inputs which are finally fed to a linear or logistic regression model.</div>
+A neural network is nothing more than repeatedly transformed inputs which are finally fed to a linear or logistic regression model. The input stays the same, the output stays the same, only the middle changes.</div>
 
 <ul>
 <li>From Q&amp;A, explainability: for any input you know exactly how it flows through the network. The problem is credit. The attributes get enmeshed in the middle, so you cannot easily ascribe the outcome to any one input.</li>
 <li>From Q&amp;A, who controls the number of layers and functions: we do. Some things are given by the problem, some we design. Which is which comes shortly.</li>
-<li>Terminology: a linear function followed by a nonlinear function is a neuron (loosely brain-inspired, connections to neuroscience heavily argued, ignore for practice). A vertical stack of neurons is a layer. The input layer does nothing, it is just the input. The final piece is the output layer. Everything in the middle is a hidden layer.</li>
+<li>Terminology: linear followed by nonlinear is a neuron (the brain link is loose and heavily argued, ignore it in practice). A vertical stack of neurons is a layer. The input layer is just the input, the output layer produces the output, everything between is a hidden layer.</li>
 </ul>
 
 
