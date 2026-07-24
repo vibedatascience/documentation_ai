@@ -181,7 +181,7 @@ The moment you write the model as a network, you realize you can do lots of thin
 <li>To learn smart representations, transform the inputs one or more times before doing the prediction. Flow the 3-dimensional vector through another function f(x):</li>
 </ul>
 
-<svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;display:block;margin:24px auto;font-family:'IBM Plex Mono',monospace">
+<svg viewBox="0 0 760 402" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;display:block;margin:24px auto;font-family:'IBM Plex Mono',monospace">
 <defs>
 <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
 <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
@@ -215,9 +215,17 @@ The moment you write the model as a network, you realize you can do lots of thin
 <line x1="656" y1="190" x2="712" y2="190" stroke="#1a1a1a" stroke-width="1"/>
 <text x="684" y="205">1 + e<tspan font-size="9" dy="-5">-x</tspan></text>
 </g>
+<rect x="228" y="34" width="224" height="72" rx="10" fill="none" stroke="#2946d9" stroke-width="1.2" stroke-dasharray="5 4"/>
 <g fill="#2946d9" font-size="12" text-anchor="middle">
-<text x="390" y="20">stack of neurons: linear (+) then nonlinear f(x)</text>
+<text x="340" y="22">one neuron: linear (+) then activation f(x)</text>
 <text x="640" y="140">good old logistic regression</text>
+<text x="163" y="352">every arrow carries a weight</text>
+</g>
+<g fill="#64748b" font-size="12" text-anchor="middle" font-style="italic">
+<text x="64" y="392">input layer</text>
+<text x="326" y="392">hidden layer</text>
+<text x="628" y="392">output layer</text>
+<text x="756" y="170" text-anchor="end">prediction</text>
 </g>
 </svg>
 
