@@ -76,6 +76,7 @@ footer a{color:var(--muted)}
 <a class="sub" href="#l1-the-middle">The middle</a>
 <a class="sub" href="#l1-activations">Activations</a>
 <a class="sub" href="#l1-parameters">Parameters</a>
+<a class="sub" href="#l1-trained">Trained net</a>
 </nav>
 
 <header class="post">
@@ -311,6 +312,82 @@ output: 3 inputs x 1 neuron  = 3 weights + 1 bias   = 4
 <li>Habit to build: hand-calculate the parameter count the first two or three times you meet a complex network. Once you get it right a couple of times you never need to again, but it proves you understand what is connected to what.</li>
 </ul>
 
+<h3 id="l1-trained">The trained network is just a function</h3>
+<ul>
+<li>Say training (covered Wednesday) comes back with the best weights and biases it found. The network is ready for action. For any x1 and x2, each hidden neuron outputs its ReLU, and the output neuron combines them through the sigmoid.</li>
+</ul>
+
+<svg viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;display:block;margin:24px auto;font-family:'IBM Plex Mono',monospace">
+<defs>
+<marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+</marker>
+</defs>
+<g stroke="#64748b" stroke-width="1.2" marker-end="url(#ah2)" fill="none">
+<line x1="116" y1="128" x2="264" y2="86"/>
+<line x1="116" y1="136" x2="264" y2="172"/>
+<line x1="116" y1="144" x2="266" y2="256"/>
+<line x1="116" y1="222" x2="266" y2="94"/>
+<line x1="116" y1="230" x2="264" y2="180"/>
+<line x1="116" y1="238" x2="264" y2="264"/>
+<line x1="322" y1="82" x2="484" y2="166"/>
+<line x1="322" y1="176" x2="484" y2="176"/>
+<line x1="322" y1="270" x2="484" y2="186"/>
+<line x1="540" y1="176" x2="580" y2="176"/>
+<line x1="656" y1="176" x2="690" y2="176"/>
+</g>
+<g fill="#fdfcf9" stroke="#1a1a1a" stroke-width="1.4">
+<circle cx="90" cy="132" r="26"/><circle cx="90" cy="230" r="26"/>
+<circle cx="294" cy="80" r="28"/><circle cx="294" cy="174" r="28"/><circle cx="294" cy="268" r="28"/>
+<circle cx="512" cy="176" r="28"/>
+<ellipse cx="618" cy="176" rx="38" ry="26"/>
+</g>
+<g fill="#1a1a1a" font-size="15" text-anchor="middle">
+<text x="90" y="137">x1</text><text x="90" y="235">x2</text>
+<text x="294" y="85">a1</text><text x="294" y="179">a2</text><text x="294" y="273">a3</text>
+<text x="512" y="181">+</text>
+<text x="618" y="181" font-size="14">&sigma;</text>
+</g>
+<g fill="#1a1a1a" font-size="12" text-anchor="middle">
+<text x="180" y="98">0.5</text>
+<text x="196" y="146">-0.1</text>
+<text x="152" y="176">0.2</text>
+<text x="152" y="204">0.1</text>
+<text x="196" y="232">0.3</text>
+<text x="180" y="272">-0.1</text>
+<text x="396" y="112">-0.2</text>
+<text x="396" y="168">-0.3</text>
+<text x="396" y="242">-0.15</text>
+<text x="716" y="168">y</text>
+</g>
+<g fill="#2946d9" font-size="12" text-anchor="middle">
+<text x="294" y="40">-0.3</text><text x="294" y="134">0.2</text><text x="294" y="228">0.5</text>
+<text x="512" y="136">0.05</text>
+<text x="294" y="318">ReLU neurons, bias above each</text>
+</g>
+</svg>
+
+<ul>
+<li>The exact same network, written as math:</li>
+</ul>
+
+<div class="pipeline">a1 = max(0, -0.3 + 0.5&middot;x1 + 0.1&middot;x2)
+a2 = max(0,  0.2 - 0.1&middot;x1 + 0.3&middot;x2)
+a3 = max(0,  0.5 + 0.2&middot;x1 - 0.1&middot;x2)
+y  = &sigma;(0.05 - 0.2&middot;a1 - 0.3&middot;a2 - 0.15&middot;a3)</div>
+
+<ul>
+<li>Written as one line it is a monster: y = 1 / (1 + e<sup>&minus;(0.05 &minus; 0.2&middot;max(0, &minus;0.3+0.5x1+0.1x2) &minus; 0.3&middot;max(0, 0.2&minus;0.1x1+0.3x2) &minus; 0.15&middot;max(0, 0.5+0.2x1&minus;0.1x2))</sup>). Super interpretable, right? The graphical layout and this function are equivalent, and the drawing is the one you can reason with.</li>
+<li>Contrast with plain logistic regression: even this tiny network, one hidden layer of three neurons, is vastly more complicated as a function. The number of inputs has not changed, still two. From this complexity springs the ability to do magical things, provided you know how to train it. That is the secret sauce.</li>
+</ul>
+
+<div class="widget" id="wfwd">
+<div class="wtitle">Run the trained network yourself</div>
+<div class="row">x1 = GPA <input type="range" id="fw_x1" min="0" max="4" step="0.05" value="3.8"><span class="val" id="fw_x1_v">3.80</span></div>
+<div class="row">x2 = experience <input type="range" id="fw_x2" min="0" max="10" step="0.1" value="1.2"><span class="val" id="fw_x2_v">1.2</span></div>
+<div class="calc" id="fw_out"></div>
+</div>
+
 
 <script>
 // network term highlighter
@@ -355,6 +432,24 @@ document.getElementById('lg_gpa').value=b.dataset.g;
 document.getElementById('lg_exp').value=b.dataset.e;
 lgU();});});
 lgU();
+
+// forward pass widget
+function fwU(){
+var x1=+document.getElementById('fw_x1').value, x2=+document.getElementById('fw_x2').value;
+document.getElementById('fw_x1_v').textContent=f2(x1);
+document.getElementById('fw_x2_v').textContent=f2(x2,1);
+var a1=Math.max(0,-0.3+0.5*x1+0.1*x2);
+var a2=Math.max(0,0.2-0.1*x1+0.3*x2);
+var a3=Math.max(0,0.5+0.2*x1-0.1*x2);
+var z=0.05-0.2*a1-0.3*a2-0.15*a3;
+document.getElementById('fw_out').innerHTML=
+'a1 = max(0, -0.3 + 0.5('+f2(x1)+') + 0.1('+f2(x2,1)+')) = '+f2(a1)+'<br>'+
+'a2 = max(0, 0.2 - 0.1('+f2(x1)+') + 0.3('+f2(x2,1)+')) = '+f2(a2)+'<br>'+
+'a3 = max(0, 0.5 + 0.2('+f2(x1)+') - 0.1('+f2(x2,1)+')) = '+f2(a3)+'<br>'+
+'y = &sigma;(0.05 - 0.2('+f2(a1)+') - 0.3('+f2(a2)+') - 0.15('+f2(a3)+')) = &sigma;('+f2(z)+') = <span class="big">'+f2(sig(z))+'</span>';
+}
+['fw_x1','fw_x2'].forEach(function(id){document.getElementById(id).addEventListener('input',fwU)});
+fwU();
 
 // toc scroll-spy
 var tocLinks=document.querySelectorAll('.toc a');
